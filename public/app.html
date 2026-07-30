@@ -1,0 +1,2731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyHabits</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#141414;
+  --bg2:#141414;
+  --card:rgba(255,255,255,0.027);
+  --card-h:rgba(255,255,255,0.05);
+  --glass:rgba(255,255,255,0.04);
+  --glass-border:rgba(255,255,255,0.1);
+  --border:rgba(255,255,255,0.072);
+  --border-h:rgba(255,255,255,0.16);
+  --text:#E2E2E6;
+  --muted:rgba(228,228,230,0.44);
+  --dim:rgba(228,228,230,0.2);
+  --syne:'Syne',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r16:16px;
+  --r20:20px;
+  --hc:#39FF14;
+}
+
+html,body{background:var(--bg);color:var(--text);font-family:var(--syne);min-height:100vh;overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.016) 39px,rgba(255,255,255,0.016) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.016) 39px,rgba(255,255,255,0.016) 40px);
+  pointer-events:none;z-index:0
+}
+
+.view{position:relative;z-index:1}
+
+/* ═══════════════════════════════════════
+   HOME PAGE
+═══════════════════════════════════════ */
+.home-page{max-width:1000px;margin:0 auto;padding:40px 24px 110px}
+
+.home-header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:50px;
+  animation:fadeUp 0.5s ease both;
+}
+.home-title-block .eyebrow{
+  font-size:9px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;
+}
+.home-title{
+  font-size:clamp(36px,4.5vw,52px);font-weight:800;
+  letter-spacing:-0.035em;color:#fff;line-height:1;
+}
+.home-title em{color:#fff;font-style:normal}
+
+.home-meta{text-align:right;display:flex;align-items:center;gap:12px}
+.home-date{
+  font-family:var(--mono);font-size:13px;
+  color:var(--text);letter-spacing:0.04em;font-weight:500;
+}
+.home-streak-all{
+  font-size:10px;color:var(--muted);
+}
+
+/* Settings button */
+.settings-btn{
+  width:34px;height:34px;border-radius:10px;
+  border:1px solid var(--border);background:var(--card);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;color:var(--dim);font-size:16px;
+  flex-shrink:0;
+}
+.settings-btn:hover{border-color:var(--border-h);color:var(--text);background:var(--card-h)}
+
+/* Habit Grid — single column */
+.habit-grid{
+  display:grid;grid-template-columns:1fr;
+  gap:10px;margin-bottom:32px;
+}
+
+/* ── Habit Card */
+.hcard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r20);padding:22px 22px 18px;cursor:pointer;
+  transition:border-color 0.2s,background 0.2s,transform 0.2s,box-shadow 0.2s;
+  position:relative;overflow:hidden;
+}
+.hcard:hover{
+  border-color:var(--border-h);
+  background:var(--card-h);
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.28);
+}
+
+.hcard-top{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;margin-bottom:4px;
+}
+.hcard-name{
+  font-size:16px;font-weight:700;color:#fff;
+  letter-spacing:-0.02em;line-height:1.2;
+}
+.hcard-streak{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--hc);margin-bottom:14px;
+}
+.streak-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--hc);
+  animation:pulse 2.2s ease-in-out infinite;
+}
+
+/* Mini heatmap — full width, cells stretch to fill */
+.mini-heat{
+  display:flex;gap:2px;margin-bottom:0;
+  overflow:hidden;align-items:flex-start;width:100%;
+}
+.mini-col{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.mini-cell{width:100%;aspect-ratio:1;border-radius:1.5px;transition:opacity 0.15s}
+
+/* ═══════════════════════════════════════
+   ADD + SETTINGS BOTTOM AREA
+═══════════════════════════════════════ */
+.add-fab-wrap{display:flex;justify-content:center;padding-top:6px;animation:fadeUp 0.5s 0.28s ease both}
+.add-fab{
+  display:flex;align-items:center;gap:9px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:100px;padding:13px 30px;
+  font-family:var(--syne);font-size:12.5px;font-weight:700;
+  color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+}
+.add-fab:hover{
+  border-color:rgba(255,255,255,0.18);
+  color:var(--text);
+  background:var(--card-h);
+}
+.add-plus{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--dim);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;line-height:1;
+  color:var(--dim);transition:all 0.2s;
+}
+.add-fab:hover .add-plus{border-color:var(--text);color:var(--text)}
+
+/* ═══════════════════════════════════════
+   DETAIL PAGE
+═══════════════════════════════════════ */
+.detail-page{max-width:960px;margin:0 auto;padding:30px 24px 100px}
+
+.back-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:28px;animation:fadeDown 0.4s ease both;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:none;border:1px solid var(--border);
+  border-radius:100px;padding:7px 16px;
+  font-family:var(--syne);font-size:11.5px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;
+}
+.back-btn:hover{border-color:var(--border-h);color:var(--text)}
+.delete-habit-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,60,60,0.08);border:1px solid rgba(255,60,60,0.25);
+  border-radius:100px;padding:7px 16px;
+  font-family:var(--syne);font-size:11.5px;font-weight:600;
+  color:rgba(255,90,90,0.75);cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;
+}
+.delete-habit-btn:hover{border-color:rgba(255,60,60,0.6);color:#ff5a5a;background:rgba(255,60,60,0.14)}
+
+/* Hero */
+.d-hero{text-align:center;margin-bottom:28px;animation:fadeUp 0.5s 0.08s ease both}
+.d-eyebrow{
+  font-size:8.5px;letter-spacing:0.26em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;
+}
+.d-name-wrap{position:relative;display:inline-block}
+.d-name{
+  font-size:clamp(36px,5vw,66px);font-weight:800;letter-spacing:-0.03em;
+  line-height:1.05;color:#fff;cursor:text;
+  background:none;border:none;outline:none;
+  font-family:var(--syne);display:block;
+  text-align:center;width:100%;
+  transition:color 0.2s;
+}
+.d-name:focus,.d-name.editing{color:var(--hc);caret-color:var(--hc)}
+
+.d-streak-wrap{margin-top:14px}
+.d-streak-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.03);
+  border-radius:100px;padding:6px 16px;
+  font-family:var(--mono);font-size:11px;color:var(--hc);
+}
+.d-streak-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--hc);animation:pulse 2.2s ease-in-out infinite;
+}
+
+.d-cta{display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn-complete{
+  border:none;border-radius:100px;padding:12px 36px;
+  font-family:var(--syne);font-size:13px;font-weight:700;letter-spacing:0.04em;
+  cursor:pointer;transition:all 0.15s;
+}
+.btn-complete.active{color:#000}
+.btn-complete.active:hover{opacity:0.88;transform:translateY(-1px)}
+.btn-complete.undone{
+  background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);
+}
+.btn-complete.undone:hover{border-color:var(--border-h);color:var(--text)}
+
+.d-flash{
+  margin-top:10px;font-size:10px;font-weight:700;
+  letter-spacing:0.16em;color:var(--hc);text-transform:uppercase;
+  animation:fadeIn 0.3s ease;display:none;
+}
+
+/* Year Heatmap FIRST */
+.heat-wrap{animation:fadeUp 0.5s 0.1s ease both;margin-bottom:12px}
+.heat-grid-container{overflow-x:auto;padding-bottom:2px}
+.heat-grid-container::-webkit-scrollbar{height:3px}
+.heat-grid-container::-webkit-scrollbar-track{background:transparent}
+.heat-grid-container::-webkit-scrollbar-thumb{background:transparent;border-radius:2px;transition:background 0.2s}
+.heat-grid-container:hover::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.09)}
+.heat-labels{display:flex;gap:3px;margin-bottom:5px}
+.heat-month-lbl{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.heat-cols{display:flex;gap:3px;align-items:stretch}
+.heat-col{display:flex;flex-direction:column;gap:3px}
+.heat-cell{
+  width:12px;height:12px;border-radius:2px;cursor:pointer;
+  transition:transform 0.12s,opacity 0.12s;flex-shrink:0;position:relative;
+}
+.heat-cell:hover{transform:scale(1.35);opacity:0.8;z-index:5}
+.heat-cell[title]:hover::after{
+  content:attr(title);
+  position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:rgba(6,6,12,0.96);border:1px solid rgba(255,255,255,0.1);
+  color:var(--text);font-family:var(--mono);font-size:9px;
+  padding:3px 8px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:10;
+}
+
+/* Stats row */
+.d-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:12px;
+  animation:fadeUp 0.5s 0.14s ease both;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r16);padding:18px 14px;
+  transition:border-color 0.2s,transform 0.2s;
+}
+.stat-card:hover{border-color:var(--border-h);transform:translateY(-2px)}
+.stat-lbl{
+  font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;
+}
+.stat-val{
+  font-family:var(--mono);font-size:28px;font-weight:700;
+  color:var(--hc);line-height:1;
+}
+.stat-val.accent{color:var(--hc)}
+.stat-val .unit{font-size:13px;color:var(--dim)}
+.stat-sub{font-size:9px;color:var(--dim);margin-top:5px}
+.stat-pop{animation:popAnim 0.4s ease}
+
+/* Panel base */
+.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r20);padding:22px 20px;
+}
+.panel-title{
+  font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:16px;
+}
+
+/* Two-col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;animation:fadeUp 0.5s 0.22s ease both}
+
+/* Calendar */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-lbl{font-size:14px;font-weight:700;letter-spacing:-0.01em}
+.cal-nav{
+  background:none;border:1px solid var(--border);border-radius:8px;
+  width:28px;height:28px;cursor:pointer;color:var(--muted);font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s;
+}
+.cal-nav:hover{border-color:var(--hc);color:var(--hc)}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px}
+.dow{font-size:8px;text-align:center;color:var(--dim);padding:2px 0;letter-spacing:0.04em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.day{
+  aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;cursor:pointer;
+  border:1px solid transparent;user-select:none;
+  /* No transition on hover — click-only response for perceived speed. */
+  transition:transform 0.12s ease;
+}
+.day.empty,.day.fut{cursor:default;pointer-events:none}
+.day.fut{opacity:0.16}
+.day.open{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22)}
+.day.done{color:#000;font-weight:700}
+.day.tod{box-shadow:0 0 0 1px rgba(255,255,255,0.22)!important}
+.day:active{transform:scale(0.92)}
+
+/* Year navigation buttons on Streaks heatmap */
+.panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.year-nav{
+  width:26px;height:26px;border-radius:8px;background:transparent;
+  border:1px solid var(--border);color:var(--muted);
+  font-size:15px;line-height:1;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.year-nav:hover{border-color:var(--hc);color:var(--hc)}
+.year-nav:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+
+/* Drag & drop of habit cards */
+.hcard{cursor:grab}
+.hcard:active{cursor:grabbing}
+.hcard.sortable-ghost{opacity:0.4;background:rgba(57,255,20,0.04)}
+.hcard.sortable-chosen{cursor:grabbing}
+.hcard.sortable-drag{opacity:0.9;box-shadow:0 20px 40px rgba(0,0,0,0.5)}
+
+/* 4-column stat layout for profile page */
+.profile-stats-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.profile-stats-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.profile-stats-4{grid-template-columns:1fr}}
+
+/* Score + Streaks big box */
+.score-box{display:flex;flex-direction:column}
+.score-top{
+  padding-bottom:20px;margin-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.score-label-txt{
+  font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:8px;
+}
+.score-number{
+  font-family:var(--mono);font-size:62px;font-weight:700;
+  color:var(--hc);line-height:1;margin-bottom:4px;
+}
+.score-sub{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.score-bar-wrap{margin-top:12px}
+.score-bar-bg{
+  height:3px;background:rgba(255,255,255,0.07);
+  border-radius:2px;overflow:hidden;
+}
+.score-bar-fill{
+  height:100%;border-radius:2px;background:var(--hc);
+  transition:width 0.9s cubic-bezier(0.4,0,0.2,1);
+}
+
+.streaks-section{}
+.streaks-lbl{
+  font-size:9px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:14px;font-family:var(--mono);
+}
+/* Top Streaks — hero #1 + compact list */
+.streak-hero{
+  display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;
+  padding:8px 0 18px;
+}
+.streak-hero-num{
+  font-family:var(--mono);font-size:64px;font-weight:800;line-height:1;
+  color:var(--hc);letter-spacing:-0.02em;
+}
+.streak-hero-num .unit{font-size:28px;color:var(--hc);opacity:.75;margin-left:2px}
+.streak-hero-meta{text-align:right;display:flex;flex-direction:column;gap:6px;padding-bottom:6px}
+.streak-hero-lbl{
+  font-family:var(--syne);font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.01em;
+}
+.streak-hero-range{
+  font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:0.04em;
+}
+.streak-hero-bar{
+  height:2px;background:linear-gradient(90deg, var(--hc) 0%, rgba(57,255,20,0.2) 100%);
+  border-radius:100px;margin:0 0 14px;box-shadow:0 0 12px rgba(57,255,20,0.35);
+}
+.streak-item{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.streak-item:last-child{border-bottom:none}
+.streak-item .si-num{
+  font-family:var(--mono);font-size:18px;font-weight:700;color:#fff;
+  min-width:44px;letter-spacing:-0.005em;
+}
+.streak-item .si-num .unit{font-size:11px;color:var(--muted);opacity:.7;margin-left:1px;font-weight:500}
+.streak-item .si-meta{display:flex;flex-direction:column;gap:2px;text-align:right;justify-self:end}
+.streak-item .si-lbl{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.06em}
+.streak-item .si-range{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:0.04em}
+
+.empty-state{text-align:center;color:var(--dim);font-size:11px;padding:24px 0;line-height:1.9}
+
+/* Empty hero — shown when user has zero habits */
+.empty-hero{
+  text-align:center;
+  padding:80px 24px 60px;
+  animation:fadeUp 0.5s ease both;
+  max-width:520px;
+  margin:0 auto;
+  grid-column:1 / -1;
+}
+.empty-eyebrow{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  color:var(--dim);
+  margin-bottom:14px;
+}
+.empty-title{
+  font-family:var(--syne);
+  font-size:clamp(36px,5vw,54px);
+  font-weight:800;
+  letter-spacing:-0.035em;
+  color:#fff;
+  line-height:1.05;
+  margin-bottom:16px;
+}
+.empty-title::first-letter{color:var(--hc)}
+.empty-sub{
+  font-family:var(--syne);
+  font-size:15px;
+  color:var(--muted);
+  line-height:1.55;
+  margin-bottom:32px;
+  letter-spacing:-0.005em;
+}
+.empty-cta{
+  display:inline-flex;
+  align-items:center;
+  padding:14px 26px;
+  background:var(--hc);
+  border:none;
+  border-radius:14px;
+  color:#000;
+  font-family:var(--syne);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:transform .1s, box-shadow .2s;
+}
+.empty-cta:hover{box-shadow:0 12px 32px rgba(57,255,20,0.32)}
+.empty-cta:active{transform:scale(0.97)}
+@media(max-width:660px){
+  .empty-hero{padding:56px 20px 40px}
+  .empty-title{font-size:36px}
+}
+
+/* Frequency */
+.freq-wrap{animation:fadeUp 0.5s 0.28s ease both;margin-bottom:12px}
+.freq-bars{display:flex;align-items:flex-end;gap:4px;height:86px;margin-top:10px}
+.freq-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%}
+.freq-bar-area{flex:1;width:100%;display:flex;align-items:flex-end}
+.freq-bar{
+  width:100%;border-radius:4px 4px 0 0;position:relative;
+  transition:height 0.8s cubic-bezier(0.4,0,0.2,1);cursor:default;
+}
+.freq-bar:hover::after{
+  content:attr(data-t);
+  position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:rgba(6,6,12,0.96);border:1px solid rgba(255,255,255,0.1);
+  color:var(--text);font-family:var(--mono);font-size:9px;
+  padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:10;
+}
+.freq-lbl{font-family:var(--mono);font-size:7px;color:var(--dim);margin-top:4px;text-align:center;overflow:hidden;width:100%}
+
+/* History */
+.hist-wrap{animation:fadeUp 0.5s 0.34s ease both;margin-bottom:12px}
+.hist-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.hist-list::-webkit-scrollbar{width:3px}
+.hist-list::-webkit-scrollbar-track{background:transparent}
+.hist-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+.hist-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:10px;
+  border:1px solid transparent;cursor:pointer;transition:background 0.15s;
+}
+.hist-row:hover{background:rgba(255,255,255,0.04)}
+.hist-row.is-today{border-color:rgba(255,255,255,0.07);background:rgba(255,255,255,0.02)}
+.hist-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.hist-dot.miss{background:rgba(255,255,255,0.12)}
+.hist-date{font-family:var(--mono);font-size:10px;color:var(--muted);flex:1}
+.hist-status{font-size:10px;font-weight:600}
+.hist-status.done{color:var(--hc)}
+.hist-status.miss{color:rgba(255,255,255,0.2)}
+
+/* ═══════════════════════════════════════
+   GLASSMORPHISM MODAL — NEW HABIT
+═══════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.82);
+  z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn 0.22s ease}
+
+.modal-box{
+  background:#1C1C1C;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:32px 30px;
+  width:min(440px,92vw);
+  animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 24px 60px rgba(0,0,0,0.7);
+}
+.modal-title{font-size:22px;font-weight:800;letter-spacing:-0.025em;color:#fff;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.modal-label{
+  display:block;font-size:9.5px;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:8px;
+}
+.modal-input{
+  width:100%;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  padding:13px 16px;color:#fff;
+  font-family:var(--syne);font-size:15px;font-weight:600;
+  outline:none;transition:border-color 0.15s,background 0.15s;
+  margin-bottom:22px;
+}
+.modal-input::placeholder{color:rgba(255,255,255,0.3)}
+.modal-input:focus{border-color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.11)}
+
+/* Modal buttons — both grey, white stroke on hover */
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.modal-cancel{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:100px;
+  padding:11px 26px;color:rgba(255,255,255,0.6);
+  font-family:var(--syne);font-size:13px;font-weight:600;
+  letter-spacing:0.04em;
+  cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;
+}
+.modal-cancel:hover{border-color:rgba(255,255,255,0.5);color:#fff;background:rgba(255,255,255,0.12)}
+.modal-add{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:100px;padding:11px 26px;
+  font-family:var(--syne);font-size:13px;font-weight:700;
+  letter-spacing:0.04em;
+  color:rgba(255,255,255,0.6);
+  cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;
+}
+.modal-add:hover{border-color:rgba(255,255,255,0.5);color:#fff;background:rgba(255,255,255,0.12)}
+
+/* ═══════════════════════════════════════
+   SETTINGS MODAL
+═══════════════════════════════════════ */
+.settings-modal-box{
+  background:#1C1C1C;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:34px 32px;
+  width:min(400px,92vw);
+  animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 32px 80px rgba(0,0,0,0.7);
+}
+.settings-title{font-size:20px;font-weight:800;letter-spacing:-0.025em;color:#fff;margin-bottom:8px}
+.settings-subtitle{font-size:10px;color:var(--dim);letter-spacing:0.08em;margin-bottom:28px}
+.settings-section{margin-bottom:20px}
+.settings-section-label{
+  font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;
+}
+.settings-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-radius:12px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);
+  margin-bottom:6px;cursor:pointer;transition:all 0.15s;
+}
+.settings-row:hover{background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.18)}
+.settings-row-text{}
+.settings-row-name{font-size:13px;font-weight:600;color:#fff}
+.settings-row-desc{font-size:10px;color:var(--dim);margin-top:2px}
+.settings-row-icon{font-size:18px;opacity:0.7}
+.settings-divider{
+  height:1px;background:rgba(255,255,255,0.06);margin:18px 0;
+}
+.settings-danger{
+  color:#FF5C5C!important;
+}
+.settings-danger .settings-row-name{color:#FF5C5C}
+.settings-close-btn{
+  width:100%;margin-top:6px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:11px;
+  font-family:var(--syne);font-size:12px;font-weight:700;
+  letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.settings-close-btn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}
+
+/* Import hidden input */
+#importFileInput{display:none}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.25;transform:scale(0.45)}}
+@keyframes popAnim{0%{transform:scale(1)}35%{transform:scale(1.32)}100%{transform:scale(1)}}
+
+@media(max-width:660px){
+  .habit-grid{grid-template-columns:1fr}
+  .d-stats{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .score-number{font-size:46px}
+}
+
+/* ═══════════════════════════════════════
+   CLOUD ADDITIONS · AUTH · NAV · LEADERBOARD · PROFILE
+═══════════════════════════════════════ */
+
+/* Loading splash */
+.boot-splash{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;transition:opacity .3s}
+.boot-splash.hidden{opacity:0;pointer-events:none}
+.boot-splash .bs-mark{font-family:var(--syne);font-size:26px;font-weight:800;letter-spacing:-0.03em;color:#fff}
+.boot-splash .bs-sub{font-family:var(--mono);font-size:10px;letter-spacing:0.24em;color:var(--dim);text-transform:uppercase}
+.boot-spinner{width:22px;height:22px;border:2px solid rgba(255,255,255,0.1);border-top-color:var(--hc);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Auth View */
+.auth-view{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;position:relative;z-index:2}
+.auth-card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 32px;animation:fadeUp 0.5s ease both;backdrop-filter:blur(16px)}
+.auth-brand{text-align:center;margin-bottom:28px}
+.auth-brand .eyebrow{font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.auth-brand h1{font-size:36px;font-weight:800;letter-spacing:-0.035em;color:#fff;line-height:1}
+.auth-brand h1 em{font-style:normal;color:var(--hc)}
+.auth-tabs{display:flex;gap:4px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:9px 12px;border:none;background:transparent;color:var(--muted);font-family:var(--syne);font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;border-radius:8px;transition:all .2s}
+.auth-tab.active{background:var(--card-h);color:#fff}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:var(--mono)}
+.auth-input{width:100%;padding:12px 14px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--syne);font-size:14px;outline:none;transition:border-color .2s,background .2s}
+.auth-input:focus{border-color:var(--hc);background:rgba(0,0,0,0.4)}
+.auth-btn{width:100%;padding:13px 16px;background:var(--hc);border:none;border-radius:12px;color:#000;font-family:var(--syne);font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:transform .1s,box-shadow .2s;margin-top:8px}
+.auth-btn:hover{box-shadow:0 8px 24px rgba(57,255,20,0.28)}
+.auth-btn:active{transform:scale(0.98)}
+.auth-btn:disabled{opacity:0.6;cursor:wait}
+.auth-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.auth-btn.ghost:hover{border-color:var(--border-h);box-shadow:none;background:var(--card-h)}
+.auth-hint{text-align:center;font-size:11px;color:var(--muted);margin-top:16px}
+.auth-hint a{color:var(--hc);text-decoration:none;cursor:pointer}
+.auth-error{background:rgba(255,69,69,0.08);border:1px solid rgba(255,69,69,0.3);color:#FF8B8B;font-size:12px;padding:10px 12px;border-radius:10px;margin-bottom:14px;font-family:var(--mono);display:none}
+.auth-error.show{display:block;animation:fadeUp 0.3s ease both}
+.auth-ok{background:rgba(57,255,20,0.06);border:1px solid rgba(57,255,20,0.3);color:var(--hc);font-size:12px;padding:10px 12px;border-radius:10px;margin-bottom:14px;font-family:var(--mono);display:none}
+.auth-ok.show{display:block;animation:fadeUp 0.3s ease both}
+
+/* Social auth */
+.social-auth{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.social-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--syne);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.social-btn:hover{border-color:var(--hc);background:var(--card-h);color:#fff}
+.social-btn:disabled{opacity:.55;cursor:wait}
+.social-ico{width:18px;height:18px;color:var(--hc);display:inline-flex;align-items:center;justify-content:center}
+.social-ico svg{width:100%;height:100%}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:8px 0 4px;color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Icon utility for green monochrome inline icons */
+.ico{display:inline-flex;align-items:center;justify-content:center;color:var(--hc);line-height:0}
+.ico svg{width:100%;height:100%;stroke:currentColor;fill:none}
+.ico.fill svg{fill:currentColor;stroke:none}
+.ach-icon.ico{width:32px;height:32px;margin:0 auto 8px}
+.podium-medal.ico{width:28px;height:28px;margin:0 auto 8px}
+.act-ico.ico{color:var(--hc)}
+.toast-ico.ico{width:18px;height:18px}
+.uc-ico{color:var(--hc)}
+
+/* Top user chip (visible when logged in on home) */
+.user-chip{position:fixed;top:20px;right:20px;z-index:50;display:none;align-items:center;gap:10px;padding:6px 12px 6px 6px;background:var(--card);border:1px solid var(--border);border-radius:100px;cursor:pointer;transition:all .2s;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.user-chip:hover{border-color:var(--border-h);background:var(--card-h);color:var(--text)}
+.user-chip.show{display:inline-flex}
+.uc-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#39FF14,#1DAA0A);display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:12px;font-family:var(--syne);text-transform:uppercase;overflow:hidden}
+.uc-avatar img{width:100%;height:100%;object-fit:cover}
+.uc-name{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Bottom Nav */
+/* ═══ Bottom Nav — Glassmorphism (Apple-inspired) ═══ */
+.bottom-nav{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:40;display:none;align-items:center;gap:4px;padding:6px;
+  /* True glass: transparent dark base + strong blur + saturation boost */
+  background:rgba(20,20,20,0.55);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+          backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid rgba(255,255,255,0.09);
+  border-radius:100px;
+  /* Soft inner highlight + layered shadow to sell the float */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.09),
+    0 10px 30px rgba(0,0,0,0.45),
+    0 2px 8px rgba(0,0,0,0.30);
+}
+.bottom-nav.show{display:inline-flex}
+
+.nav-btn{
+  padding:10px 18px;background:transparent;border:none;color:var(--muted);
+  font-family:var(--syne);font-size:11px;font-weight:600;letter-spacing:0.06em;
+  text-transform:uppercase;cursor:pointer;border-radius:100px;
+  transition:background .25s ease, color .25s ease, transform .25s cubic-bezier(0.22,1,0.36,1), box-shadow .25s ease;
+  display:inline-flex;align-items:center;gap:6px;position:relative;
+  will-change:transform;
+}
+.nav-btn:hover{
+  color:var(--text);
+  transform:translateY(-1px);
+  background:rgba(255,255,255,0.04);
+}
+.nav-btn:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px rgba(57,255,20,0.4);
+}
+.nav-btn.active{
+  color:#fff;
+  background:rgba(255,255,255,0.10);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+          backdrop-filter:blur(30px) saturate(180%);
+  transform:scale(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    0 0 20px rgba(57,255,20,0.22),
+    0 4px 16px rgba(57,255,20,0.14);
+}
+.nav-btn.active .nav-ico{color:#fff}
+.nav-btn .nav-ico{font-size:14px;transition:color .2s}
+
+@media (prefers-reduced-motion: reduce){
+  .nav-btn, .nav-btn.active{transition:none;transform:none}
+}
+
+/* Leaderboard */
+.leader-page{max-width:1000px;margin:0 auto;padding:40px 24px 110px}
+.leader-header{margin-bottom:32px;animation:fadeUp 0.5s ease both}
+.leader-header .eyebrow{font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.leader-header h1{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-0.035em;color:#fff;line-height:1}
+.leader-header h1 em{color:var(--hc);font-style:normal}
+.leader-header .lh-sub{font-size:12px;color:var(--muted);margin-top:8px}
+
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:12px;margin-bottom:28px;animation:fadeUp 0.55s ease both}
+.podium-slot{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px 14px;text-align:center;transition:transform .2s,border-color .2s}
+.podium-slot:hover{border-color:var(--border-h);transform:translateY(-2px)}
+.podium-slot.p1{border-color:rgba(255,214,0,0.4);background:linear-gradient(180deg,rgba(255,214,0,0.06),var(--card));order:2}
+.podium-slot.p2{order:1;transform:translateY(12px)}
+.podium-slot.p3{order:3;transform:translateY(12px)}
+.podium-slot.p2:hover,.podium-slot.p3:hover{transform:translateY(10px)}
+.podium-medal{font-size:28px;margin-bottom:8px}
+.podium-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#39FF14,#1DAA0A);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:#000;font-weight:700;font-size:22px;font-family:var(--syne);text-transform:uppercase;overflow:hidden}
+.podium-avatar img{width:100%;height:100%;object-fit:cover}
+.podium-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podium-uid{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:0.06em;margin-bottom:8px}
+.podium-score{font-family:var(--mono);font-size:20px;color:var(--hc);font-weight:700}
+.podium-score span{font-size:9px;color:var(--muted);margin-left:4px;font-weight:400}
+
+.leader-search{display:flex;gap:10px;margin-bottom:16px;animation:fadeUp 0.6s ease both}
+.leader-search input{flex:1;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--syne);font-size:13px;outline:none;transition:border-color .2s}
+.leader-search input:focus{border-color:var(--hc)}
+
+.leader-list{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp 0.65s ease both}
+.leader-row{display:grid;grid-template-columns:56px 44px 1fr auto auto auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.leader-row:last-child{border-bottom:none}
+.leader-row:hover{background:var(--card-h)}
+.leader-row.me{background:rgba(57,255,20,0.05);border-left:2px solid var(--hc)}
+.lr-rank{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--muted)}
+.lr-rank.top3{color:var(--hc)}
+.lr-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#39FF14,#1DAA0A);display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:14px;font-family:var(--syne);text-transform:uppercase;overflow:hidden}
+.lr-avatar img{width:100%;height:100%;object-fit:cover}
+.lr-info .lr-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.01em}
+.lr-info .lr-uid{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:0.06em;margin-top:2px}
+.lr-stat{text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.lr-stat .lrs-val{color:#fff;font-size:14px;font-weight:700;display:block}
+.lr-stat .lrs-lbl{font-size:8.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+
+.leader-empty{padding:60px 20px;text-align:center;color:var(--muted);font-size:12px}
+
+/* Profile */
+.profile-page{max-width:1000px;margin:0 auto;padding:40px 24px 110px}
+.profile-header{display:flex;gap:22px;align-items:center;margin-bottom:32px;animation:fadeUp 0.5s ease both;flex-wrap:wrap}
+.profile-avatar-wrap{position:relative}
+.profile-avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#39FF14,#1DAA0A);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;font-size:42px;font-family:var(--syne);text-transform:uppercase;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-avatar-edit{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--hc);color:#000;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:transform .2s}
+.profile-avatar-edit:hover{transform:scale(1.1)}
+.profile-name-row{flex:1;min-width:200px}
+.profile-name{font-size:32px;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1;margin-bottom:6px}
+.profile-uid{font-family:var(--mono);font-size:11px;color:var(--hc);letter-spacing:0.08em}
+.profile-email{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:4px}
+.profile-joined{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:0.06em}
+
+.profile-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:28px;animation:fadeUp 0.55s ease both}
+.pstat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;transition:border-color .2s}
+.pstat:hover{border-color:var(--border-h)}
+.pstat .pstat-lbl{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;font-family:var(--mono)}
+.pstat .pstat-val{font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.02em;line-height:1}
+.pstat .pstat-val.accent{color:var(--hc)}
+.pstat .pstat-sub{font-size:9.5px;color:var(--muted);margin-top:6px;letter-spacing:0.06em;font-family:var(--mono)}
+
+.section-title{font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--dim);margin:24px 0 12px;font-family:var(--mono)}
+
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;animation:fadeUp 0.6s ease both}
+.ach-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 14px;text-align:center;transition:all .2s;position:relative;overflow:hidden}
+.ach-card.locked{opacity:0.4;filter:grayscale(1)}
+.ach-card:not(.locked):hover{border-color:var(--hc);transform:translateY(-2px);box-shadow:0 8px 24px rgba(57,255,20,0.12)}
+.ach-icon{font-size:32px;margin-bottom:8px;line-height:1}
+.ach-name{font-size:11.5px;font-weight:700;color:#fff;margin-bottom:2px;letter-spacing:-0.005em}
+.ach-desc{font-size:9.5px;color:var(--muted);line-height:1.3;font-family:var(--mono);letter-spacing:0.02em}
+
+.activity-list{display:flex;flex-direction:column;gap:8px;animation:fadeUp 0.65s ease both}
+.act-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;transition:border-color .2s}
+.act-row:hover{border-color:var(--border-h)}
+.act-ico{width:32px;height:32px;border-radius:10px;background:rgba(57,255,20,0.08);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.act-body{flex:1;min-width:0}
+.act-title{font-size:13px;color:#fff;font-weight:600;letter-spacing:-0.005em}
+.act-title span{color:var(--hc)}
+.act-time{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:0.06em;margin-top:2px}
+
+/* Toasts */
+.toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:rgba(13,13,20,0.95);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;padding:12px 16px 12px 14px;color:#fff;font-family:var(--syne);font-size:13px;font-weight:600;letter-spacing:-0.005em;display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.5);animation:toastIn .3s ease;pointer-events:auto;min-width:240px;max-width:400px}
+.toast.leaving{animation:toastOut .3s ease forwards}
+.toast .toast-ico{font-size:18px;flex-shrink:0}
+.toast.success{border-color:rgba(57,255,20,0.35)}
+.toast.info{border-color:rgba(92,170,255,0.35)}
+.toast.warn{border-color:rgba(255,214,0,0.35)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-14px)}}
+
+/* Podium stack on mobile */
+@media(max-width:660px){
+  .podium{grid-template-columns:1fr;gap:8px}
+  .podium-slot.p1,.podium-slot.p2,.podium-slot.p3{order:unset;transform:none!important}
+  .leader-row{grid-template-columns:44px 40px 1fr auto;gap:10px;padding:12px}
+  .lr-stat.hide-mob{display:none}
+  .user-chip{top:12px;right:12px}
+  .achievements-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+<!-- Sortable.js — battle-tested drag-and-drop with touch support (~25 KB gz) -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     BOOT SPLASH (while Firebase initializes)
+═══════════════════════════════════════ -->
+<div class="boot-splash" id="bootSplash">
+  <div class="bs-mark">My<em style="font-style:normal;color:var(--hc)">Habits</em></div>
+  <div class="boot-spinner"></div>
+  <div class="bs-sub">Syncing your streak</div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TOAST CONTAINER
+═══════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════
+     AUTH VIEW (login / register / forgot)
+═══════════════════════════════════════ -->
+<div id="authView" class="view auth-view" style="display:none">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="eyebrow">Habit tracking · Cloud</div>
+      <h1>My<em>Habits</em></h1>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login">Login</button>
+      <button class="auth-tab" data-mode="register">Register</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-ok" id="authOk"></div>
+
+    <!-- Social auth (visible on both login & register) -->
+    <div class="social-auth" id="socialAuth">
+      <button class="social-btn" id="googleLoginBtn" type="button">
+        <span class="social-ico" data-ico="google"></span>
+        <span>Continue with Google</span>
+      </button>
+      <div class="auth-divider"><span>or use email</span></div>
+    </div>
+
+    <!-- Login pane -->
+    <div class="auth-pane" data-pane="login">
+      <div class="auth-field">
+        <label>Email</label>
+        <input class="auth-input" type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input class="auth-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="loginBtn">Sign In</button>
+      <div class="auth-hint"><a id="forgotLink">Forgot password?</a></div>
+    </div>
+
+    <!-- Register pane -->
+    <div class="auth-pane" data-pane="register" style="display:none">
+      <div class="auth-field">
+        <label>Username</label>
+        <input class="auth-input" type="text" id="regUsername" placeholder="e.g. Venki" maxlength="24" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input class="auth-input" type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input class="auth-input" type="password" id="regPassword" placeholder="At least 6 characters" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="registerBtn">Create Account</button>
+      <div class="auth-hint">A verification email will be sent to your address.</div>
+    </div>
+
+    <!-- Forgot pane -->
+    <div class="auth-pane" data-pane="forgot" style="display:none">
+      <div class="auth-field">
+        <label>Email</label>
+        <input class="auth-input" type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="auth-btn" id="sendResetBtn">Send Reset Link</button>
+      <div class="auth-hint"><a id="backToLogin">← Back to login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TOP USER CHIP (visible when signed in)
+═══════════════════════════════════════ -->
+<div class="user-chip" id="userChip">
+  <div class="uc-avatar" id="ucAvatar">U</div>
+  <span class="uc-name" id="ucName">User</span>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HOME VIEW
+═══════════════════════════════════════ -->
+<div id="homeView" class="view">
+  <div class="home-page">
+    <div class="home-header">
+      <div class="home-title-block">
+        <div class="home-title">My<em>Habits</em></div>
+      </div>
+      <div class="home-meta">
+        <div style="text-align:right">
+          <div class="home-date" id="homeDate"></div>
+          <div class="home-streak-all" id="homeActiveCount"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="habit-grid" id="habitGrid"></div>
+
+    <div class="add-fab-wrap">
+      <button class="add-fab" id="openAddBtn">
+        <span class="add-plus">+</span>
+        Add New Habit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DETAIL VIEW
+═══════════════════════════════════════ -->
+<div id="detailView" class="view" style="display:none">
+  <div class="detail-page" id="detailPage">
+
+    <!-- Back -->
+    <div class="back-row">
+      <button class="back-btn" id="backBtn">← All Habits</button>
+      <button class="delete-habit-btn" id="deleteHabitBtn"><span class="ico" data-ico="trash" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;color:#ff5a5a"></span>Delete Habit</button>
+    </div>
+
+    <!-- Hero -->
+    <div class="d-hero">
+      <div class="d-name-wrap" style="width:100%">
+        <input class="d-name" id="dName" type="text" maxlength="40" spellcheck="false">
+      </div>
+      <div class="d-streak-wrap">
+        <span class="d-streak-pill">
+          <span class="d-streak-dot"></span>
+          <span id="dStreakTxt">0 days streak</span>
+        </span>
+      </div>
+      <div class="d-cta">
+        <button class="btn-complete active" id="dTodayBtn">Mark as Complete</button>
+      </div>
+      <div class="d-flash" id="dFlash"><span class="ico" data-ico="spark" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px"></span>Keep the streak alive!</div>
+    </div>
+
+    <!-- Streaks Heatmap -->
+    <div class="panel heat-wrap">
+      <div class="panel-title panel-title-row">
+        <button class="year-nav" id="prevYearBtn" title="Previous year">‹</button>
+        <span>STREAKS — <span id="heatYear"></span></span>
+        <button class="year-nav" id="nextYearBtn" title="Next year">›</button>
+      </div>
+      <div class="heat-grid-container">
+        <div class="heat-labels" id="heatLabels"></div>
+        <div class="heat-cols" id="heatGrid"></div>
+      </div>
+    </div>
+
+    <!-- Stats row (day counts, no percentages) -->
+    <div class="d-stats">
+      <div class="stat-card">
+        <div class="stat-lbl">Week</div>
+        <div class="stat-val" id="dWeek">0</div>
+        <div class="stat-sub">days completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Month</div>
+        <div class="stat-val" id="dMonth">0</div>
+        <div class="stat-sub">days completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Year</div>
+        <div class="stat-val" id="dYear">0</div>
+        <div class="stat-sub">days completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Total</div>
+        <div class="stat-val" id="dTotal">0</div>
+        <div class="stat-sub">days completed</div>
+      </div>
+    </div>
+
+    <!-- Calendar + Top Streaks -->
+    <div class="two-col">
+      <!-- Calendar -->
+      <div class="panel">
+        <div class="cal-head">
+          <button class="cal-nav" id="calPrev">‹</button>
+          <span class="cal-lbl" id="calLabel"></span>
+          <button class="cal-nav" id="calNext">›</button>
+        </div>
+        <div class="cal-dow" id="calDow"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Top Streaks only -->
+      <div class="panel score-box">
+        <div class="streaks-section" style="border-top:none;padding-top:0">
+          <div class="streaks-lbl">Top Streaks</div>
+          <div id="streaksList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ADD HABIT MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <div class="modal-title">New Habit</div>
+    <label class="modal-label" for="modalInput">Habit Name</label>
+    <input class="modal-input" id="modalInput" type="text" placeholder="e.g. Deep Work, Read 30 min…" maxlength="40" spellcheck="false">
+    <div class="modal-btns">
+      <button class="modal-cancel" id="cancelAddBtn">Cancel</button>
+      <button class="modal-add" id="confirmAddBtn">Add Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SETTINGS MODAL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="settings-modal-box">
+    <div class="settings-title">Settings</div>
+    <div class="settings-subtitle">MANAGE YOUR HABITS & DATA</div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Data</div>
+
+      <div class="settings-row" id="exportAllBtn">
+        <div class="settings-row-text">
+          <div class="settings-row-name">Export All Habits</div>
+          <div class="settings-row-desc">Download all habits as a single CSV file</div>
+        </div>
+        <div class="settings-row-icon">↓</div>
+      </div>
+
+      <div class="settings-row" id="importCsvBtn">
+        <div class="settings-row-text">
+          <div class="settings-row-name">Import CSV</div>
+          <div class="settings-row-desc">Restore habits from a previously exported CSV</div>
+        </div>
+        <div class="settings-row-icon">↑</div>
+      </div>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div class="settings-section">
+      <div class="settings-section-label">Preferences</div>
+
+      <div class="settings-row" id="clearTodayBtn">
+        <div class="settings-row-text">
+          <div class="settings-row-name">Reset Today's Progress</div>
+          <div class="settings-row-desc">Uncheck all habits completed today</div>
+        </div>
+        <div class="settings-row-icon">↺</div>
+      </div>
+
+      <div class="settings-row settings-danger" id="clearAllDataBtn">
+        <div class="settings-row-text">
+          <div class="settings-row-name">Clear All Data</div>
+          <div class="settings-row-desc">Permanently delete all habits and history</div>
+        </div>
+        <div class="settings-row-icon" style="color:#FF5C5C">✕</div>
+      </div>
+    </div>
+
+    <div class="settings-divider"></div>
+
+    <div style="text-align:center;font-size:9px;color:var(--dim);letter-spacing:0.1em;margin-bottom:14px">
+      MYHABITS · DATA STORED LOCALLY
+    </div>
+
+    <button class="settings-close-btn" id="closeSettingsBtn">Close</button>
+  </div>
+</div>
+
+<input type="file" id="importFileInput" accept=".csv">
+
+<!-- ═══════════════════════════════════════
+     LEADERBOARD VIEW
+═══════════════════════════════════════ -->
+<div id="leaderView" class="view" style="display:none">
+  <div class="leader-page">
+    <div class="leader-header">
+      <div class="eyebrow">Global rankings · real-time</div>
+      <h1>Leader<em>board</em></h1>
+      <div class="lh-sub" id="lhSub">Top players ranked by score</div>
+    </div>
+
+    <div class="podium" id="podium"></div>
+
+    <div class="leader-search">
+      <input type="text" id="leaderSearch" placeholder="Search by username or HB-2026-000xxx…" spellcheck="false">
+    </div>
+
+    <div class="leader-list" id="leaderList">
+      <div class="leader-empty">Loading rankings…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PROFILE VIEW
+═══════════════════════════════════════ -->
+<div id="profileView" class="view" style="display:none">
+  <div class="profile-page">
+    <div class="profile-header">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="profileAvatar">U</div>
+      </div>
+      <div class="profile-name-row">
+        <div class="profile-name" id="profileName">User</div>
+        <div class="profile-uid" id="profileUid">HB-2026-000000</div>
+        <div class="profile-email" id="profileEmail"></div>
+        <div class="profile-joined" id="profileJoined"></div>
+      </div>
+    </div>
+
+    <div class="profile-stats profile-stats-4">
+      <div class="pstat"><div class="pstat-lbl">Score</div><div class="pstat-val accent" id="pScore">0</div><div class="pstat-sub">Total points</div></div>
+      <div class="pstat"><div class="pstat-lbl">Current Streak</div><div class="pstat-val" id="pStreak">0</div><div class="pstat-sub">days</div></div>
+      <div class="pstat"><div class="pstat-lbl">Longest Streak</div><div class="pstat-val" id="pLongest">0</div><div class="pstat-sub">personal best</div></div>
+      <div class="pstat"><div class="pstat-lbl">Habits Active</div><div class="pstat-val" id="pHabits">0</div><div class="pstat-sub">total</div></div>
+    </div>
+
+    <div class="section-title">Achievements</div>
+    <div class="achievements-grid" id="achievementsGrid"></div>
+
+    <div class="section-title" style="margin-top:32px">Account</div>
+    <button class="auth-btn ghost" id="signOutBtn">Sign Out</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+<div class="bottom-nav" id="bottomNav">
+  <button class="nav-btn active" data-nav="home"><span class="nav-ico">◉</span>Habits</button>
+  <button class="nav-btn" data-nav="leader"><span class="nav-ico">◈</span>Ranks</button>
+  <button class="nav-btn" data-nav="profile"><span class="nav-ico">◎</span>Profile</button>
+</div>
+
+<script>
+/* ─── Constants ─── */
+const COLORS = ['#39FF14'];
+// Single-color habit system — every habit uses #39FF14. See ACCENT for canonical usage.
+const ACCENT = '#39FF14';
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+/* ─── Utilities ─── */
+const mkDs = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today = () => mkDs(new Date());
+
+function fmtShort(ds) {
+  const [y,m,d] = ds.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function fmtFull(ds) {
+  const [y,m,d] = ds.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function isLight(hex) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return (r*299+g*587+b*114)/1000 > 140;
+}
+function hexAlpha(hex, a) {
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function genId() { return 'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+/* ─── (Demo data generator removed — new users start empty) ─── */
+
+/* ─── State ─── */
+let habits = [];
+let activeId = null;
+let calView = new Date();
+
+function loadHabits() {
+  // Cloud-first: habits are loaded by the Firebase listener.
+  // This function is kept as a no-op stub for backward compatibility.
+  habits = [];
+}
+
+function saveHabits() {
+  // Cloud-first: the Firebase module hook writes to Firestore.
+  // We deliberately DO NOT persist to localStorage anymore — it would leak
+  // data between users on shared browsers.
+}
+
+function defaultHabits() {
+  // No demo habits. Ever.
+  return [];
+}
+
+function getHabit(id) { return habits.find(h => h.id === id); }
+
+/* ─── Streak / Stats Calculations ─── */
+function currentStreak(habit) {
+  const set = new Set(habit.dates);
+  let d = new Date();
+  if (!set.has(mkDs(d))) d.setDate(d.getDate()-1);
+  let n = 0;
+  while (set.has(mkDs(d))) { n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+
+function allStreaks(habit) {
+  if (!habit.dates.length) return [];
+  const sorted = [...new Set(habit.dates)].sort();
+  const res = [];
+  let s=sorted[0], e=sorted[0], len=1;
+  for (let i=1; i<sorted.length; i++) {
+    const diff = (new Date(sorted[i]+'T00:00:00') - new Date(sorted[i-1]+'T00:00:00')) / 86400000;
+    if (diff===1) { e=sorted[i]; len++; }
+    else { res.push({s,e,len}); s=sorted[i]; e=sorted[i]; len=1; }
+  }
+  res.push({s,e,len});
+  return res.sort((a,b)=>b.len-a.len);
+}
+
+function calcScore(habit) {
+  const set = new Set(habit.dates);
+  let cnt = 0;
+  for (let i=0; i<30; i++) {
+    const d=new Date(); d.setDate(d.getDate()-i);
+    if (set.has(mkDs(d))) cnt++;
+  }
+  return Math.round(cnt/30*100);
+}
+
+function calcMonthStats(habit, viewY, viewM) {
+  const set = new Set(habit.dates);
+  const now = new Date();
+  const yr = now.getFullYear(), mo = now.getMonth(), dom = now.getDate();
+  const daysInViewMonth = new Date(viewY, viewM+1, 0).getDate();
+  const isCurrentMonth = viewY===yr && viewM===mo;
+  const isFutureMonth = new Date(viewY, viewM, 1) > now;
+  let elapsed;
+  if (isFutureMonth) elapsed = 0;
+  else if (isCurrentMonth) elapsed = dom;
+  else elapsed = daysInViewMonth;
+  const pfx = `${viewY}-${String(viewM+1).padStart(2,'0')}-`;
+  const done = [...set].filter(d=>d.startsWith(pfx)).length;
+  const pct = elapsed > 0 ? Math.round(done/elapsed*100) : 0;
+  return { done, elapsed, pct };
+}
+
+function calcYearStats(habit, viewY) {
+  const set = new Set(habit.dates);
+  const now = new Date();
+  const yr = now.getFullYear();
+  let elapsed;
+  if (viewY > yr) elapsed = 0;
+  else if (viewY === yr) elapsed = Math.floor((now - new Date(yr,0,0)) / 86400000);
+  else { const isLeap=(viewY%4===0&&viewY%100!==0)||viewY%400===0; elapsed=isLeap?366:365; }
+  const done = [...set].filter(d=>d.startsWith(`${viewY}-`)).length;
+  const pct = elapsed > 0 ? Math.round(done/elapsed*100) : 0;
+  return { done, elapsed, pct };
+}
+
+/* ─── Toggle ─── */
+function toggle(habitId, ds) {
+  const h = getHabit(habitId);
+  if (!h) return;
+  if (h.dates.includes(ds)) h.dates = h.dates.filter(d=>d!==ds);
+  else {
+    h.dates.push(ds);
+    if (ds === today() && habitId === activeId) showFlash();
+  }
+  saveHabits();
+  if (habitId === activeId) renderDetail();
+}
+
+/* ═══════════════════════════════════════
+   HOME VIEW
+═══════════════════════════════════════ */
+function showHome() {
+  document.getElementById('homeView').style.display = '';
+  document.getElementById('detailView').style.display = 'none';
+  activeId = null;
+  // Restore the user chip when returning to the habit list
+  const chip = document.getElementById('userChip');
+  if(chip && window.HB && window.HB.user) chip.classList.add('show');
+  renderHome();
+}
+
+function renderHome() {
+  const now = new Date();
+  const homeDateEl = document.getElementById('homeDate');
+  const homeCountEl = document.getElementById('homeActiveCount');
+  const grid = document.getElementById('habitGrid');
+  const fabWrap = document.querySelector('.add-fab-wrap');
+
+  // ─── Empty state: no habits at all ─────────────────────────
+  if (!habits || habits.length === 0) {
+    homeDateEl.textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    homeCountEl.textContent = ''; // no stats when there are no habits
+    if (fabWrap) fabWrap.style.display = 'none'; // hide bottom FAB (empty state has its own CTA)
+    grid.innerHTML = `
+      <div class="empty-hero">
+        <div class="empty-eyebrow">Welcome</div>
+        <h2 class="empty-title">Your journey starts here.</h2>
+        <p class="empty-sub">You don't have any habits yet.<br>Start building your first habit — one day at a time.</p>
+        <button class="empty-cta" id="emptyCreateBtn">
+          <span class="ico" data-ico="plus" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px"></span>
+          Create Your First Habit
+        </button>
+      </div>
+    `;
+    // Populate the icon and wire up the CTA to the existing Add Habit modal
+    const btn = document.getElementById('emptyCreateBtn');
+    if (btn) {
+      const icoEl = btn.querySelector('[data-ico]');
+      if (icoEl && window.HB && typeof window.HB.__renderIco === 'function') {
+        window.HB.__renderIco(icoEl);
+      } else if (icoEl) {
+        // Fallback SVG for the plus icon (in case module hasn't loaded yet)
+        icoEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+      }
+      btn.addEventListener('click', openAddModal);
+    }
+    return;
+  }
+
+  // ─── Normal state: at least one habit ──────────────────────
+  homeDateEl.textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const doneToday = habits.filter(h => new Set(h.dates).has(today())).length;
+  homeCountEl.textContent = `${doneToday} of ${habits.length} completed today`;
+  if (fabWrap) fabWrap.style.display = ''; // ensure FAB is visible
+
+  grid.innerHTML = habits.map((h, idx) => {
+    const cs = currentStreak(h);
+    return `<div class="hcard" data-habit-id="${h.id}" style="--hc:${h.color};animation-delay:${idx*0.055}s" onclick="showDetail('${h.id}')">
+      <div class="hcard-top">
+        <div class="hcard-name">${escHtml(h.name)}</div>
+      </div>
+      <div class="hcard-streak">
+        <span class="streak-dot" style="background:${h.color}"></span>
+        <span style="color:${h.color}">${cs} day${cs!==1?'s':''} streak</span>
+      </div>
+      <div class="mini-heat" id="mh-${h.id}"></div>
+    </div>`;
+  }).join('');
+
+  habits.forEach(h => {
+    const el = document.getElementById('mh-'+h.id);
+    if (el) el.innerHTML = buildMiniHeat(h);
+  });
+}
+
+function buildMiniHeat(habit) {
+  const set = new Set(habit.dates);
+  const t = today();
+  const now = new Date();
+  // Use exactly 52 weeks — flex:1 on columns fills the full card width
+  const WEEKS = 52;
+  // Start from the Sunday 52 weeks ago
+  const startDay = new Date(now);
+  startDay.setDate(now.getDate() - now.getDay() - (WEEKS - 1) * 7);
+
+  let html = '';
+  for (let w = 0; w < WEEKS; w++) {
+    html += '<div class="mini-col">';
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(startDay);
+      date.setDate(startDay.getDate() + w * 7 + d);
+      const ds = mkDs(date);
+      const isFut = ds > t;
+      const done = !isFut && set.has(ds);
+      const bg = done ? habit.color
+        : isFut ? 'rgba(255,255,255,0.04)'
+        : 'rgba(255,255,255,0.07)';
+      html += `<div class="mini-cell" style="background:${bg}"></div>`;
+    }
+    html += '</div>';
+  }
+  return html;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════
+   DETAIL VIEW
+═══════════════════════════════════════ */
+function showDetail(id) {
+  activeId = id;
+  calView = new Date();
+  heatYearOffset = 0; // reset year navigation each time
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('detailView').style.display = '';
+  // Hide user chip while on Habit Details page (focus on the habit)
+  const chip = document.getElementById('userChip');
+  if(chip) chip.classList.remove('show');
+  const h = getHabit(id);
+  if (!h) return;
+  document.getElementById('detailPage').style.setProperty('--hc', h.color);
+  document.getElementById('dName').value = h.name;
+  renderDetail();
+  window.scrollTo(0,0);
+}
+
+/* State for the Streaks year navigation on the detail page */
+let heatYearOffset = 0;
+
+function renderDetail() {
+  const h = getHabit(activeId);
+  if (!h) return;
+  const cs = currentStreak(h);
+  renderHero(h, cs);
+  renderHeatmap(h);
+  renderDetailStats(h);
+  renderCalendar(h);
+  renderTopStreaks(h);
+}
+
+function renderTopStreaks(h){
+  const el = document.getElementById('streaksList');
+  if(!el) return;
+  const streaks = allStreaks(h).slice(0, 5);
+  if(streaks.length === 0){
+    el.innerHTML = `<div class="streak-empty" style="font-size:12px;color:var(--muted);padding:12px 0;font-family:var(--mono);letter-spacing:0.02em">No streaks yet — complete this habit to build one.</div>`;
+    return;
+  }
+  // Format "YYYY-MM-DD" → "Mon D"
+  const fmt = (ds) => {
+    const [y,m,d] = ds.split('-').map(Number);
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${names[m-1]} ${d}`;
+  };
+  const rangeOf = (s) => s.s === s.e ? fmt(s.s) : `${fmt(s.s)} → ${fmt(s.e)}`;
+
+  const hero = streaks[0];
+  const rest = streaks.slice(1);
+
+  const heroHtml = `
+    <div class="streak-hero">
+      <div class="streak-hero-num">${hero.len}<span class="unit">d</span></div>
+      <div class="streak-hero-meta">
+        <div class="streak-hero-lbl">Longest</div>
+        <div class="streak-hero-range">${rangeOf(hero)}</div>
+      </div>
+    </div>
+    <div class="streak-hero-bar"></div>
+  `;
+
+  const restHtml = rest.map((s, i) => `
+    <div class="streak-item">
+      <div class="si-num">${s.len}<span class="unit">d</span></div>
+      <div class="si-meta">
+        <div class="si-lbl">#${i+2}</div>
+        <div class="si-range">${rangeOf(s)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  el.innerHTML = heroHtml + restHtml;
+}
+
+function renderHero(h, cs) {
+  const doneToday = new Set(h.dates).has(today());
+  document.getElementById('dStreakTxt').textContent = `${cs} day${cs!==1?'s':''} streak`;
+  const dot = document.querySelector('.d-streak-dot');
+  if (dot) dot.style.background = h.color;
+  const pill = document.querySelector('.d-streak-pill');
+  if (pill) pill.style.color = h.color;
+  const btn = document.getElementById('dTodayBtn');
+  if (doneToday) {
+    btn.textContent = '✓ Done today — Undo';
+    btn.className = 'btn-complete undone';
+    btn.style.background = '';
+    btn.style.color = '';
+  } else {
+    btn.textContent = 'Mark as Complete';
+    btn.className = 'btn-complete active';
+    btn.style.background = h.color;
+    btn.style.color = isLight(h.color) ? '#000' : '#fff';
+  }
+}
+
+function renderDetailStats(h) {
+  const set = new Set(h.dates);
+  const t = today();
+  const now = new Date();
+  const viewY = calView.getFullYear(), viewM = calView.getMonth();
+
+  // ── Week: last 7 days (rolling)
+  let weekDone = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    if(set.has(mkDs(d))) weekDone++;
+  }
+  document.getElementById('dWeek').textContent = weekDone;
+
+  // ── Month: count of completed dates in the currently viewed month
+  let monthDone = 0;
+  const daysInMonth = new Date(viewY, viewM+1, 0).getDate();
+  for(let d=1; d<=daysInMonth; d++){
+    if(set.has(mkDs(new Date(viewY, viewM, d)))) monthDone++;
+  }
+  document.getElementById('dMonth').textContent = monthDone;
+
+  // ── Year: count of completed dates in the currently viewed calendar year
+  let yearDone = 0;
+  for(const ds of h.dates){
+    if(ds.startsWith(String(viewY)+'-')) yearDone++;
+  }
+  document.getElementById('dYear').textContent = yearDone;
+
+  // ── Total across all history
+  document.getElementById('dTotal').textContent = h.dates.length;
+}
+
+function renderHeatmap(h) {
+  const set = new Set(h.dates);
+  const now = new Date();
+  const yr = now.getFullYear() + heatYearOffset;
+  const heatYearEl = document.getElementById('heatYear');
+  if(heatYearEl) heatYearEl.textContent = yr;
+  const nextBtn = document.getElementById('nextYearBtn');
+  if(nextBtn) nextBtn.disabled = (heatYearOffset >= 0);
+
+  // Start from Sunday of the week containing Jan 1
+  const jan1 = new Date(yr, 0, 1);
+  const weekStart = new Date(jan1);
+  weekStart.setDate(jan1.getDate() - jan1.getDay());
+
+  // End at the Saturday of the week containing Dec 31
+  const dec31 = new Date(yr, 11, 31);
+  const weekEnd = new Date(dec31);
+  weekEnd.setDate(dec31.getDate() + (6 - dec31.getDay()));
+
+  const cols = [];
+  const monthLabels = [];
+  let cur = new Date(weekStart);
+
+  while (cur <= weekEnd) {
+    const col = [];
+    for (let d = 0; d < 7; d++) {
+      const ds = mkDs(cur);
+      const inYear = cur.getFullYear() === yr;
+      const fut = ds > mkDs(now);
+      const done = set.has(ds);
+      if (inYear && cur.getDate() === 1)
+        monthLabels.push({ col: cols.length, label: MONTH_SHORT[cur.getMonth()] });
+      col.push({ ds, inYear, fut, done });
+      cur = new Date(cur); cur.setDate(cur.getDate() + 1);
+    }
+    cols.push(col);
+  }
+
+  document.getElementById('heatLabels').innerHTML = cols.map((_, ci) => {
+    const ml = monthLabels.find(x => x.col === ci);
+    return `<div class="heat-month-lbl" style="width:12px;flex-shrink:0;margin-right:3px">${ml ? ml.label : ''}</div>`;
+  }).join('');
+
+  document.getElementById('heatGrid').innerHTML = cols.map(col =>
+    `<div class="heat-col">${col.map(({ ds, inYear, fut, done }) => {
+      // Out-of-year padding cells: render as invisible spacers
+      if (!inYear) {
+        return `<div class="heat-cell" style="background:transparent;pointer-events:none"></div>`;
+      }
+      const bg = fut ? 'rgba(255,255,255,0.04)'
+        : done ? h.color
+        : 'rgba(255,255,255,0.065)';
+      const op = done ? '0.88' : '1';
+      return `<div class="heat-cell" style="background:${bg};opacity:${op}" data-ds="${ds}" title="${fmtShort(ds)}: ${done ? 'Done' : fut ? '—' : 'Missed'}"></div>`;
+    }).join('')}</div>`
+  ).join('');
+}
+
+function renderCalendar(h) {
+  const set = new Set(h.dates);
+  const t = today();
+  const y = calView.getFullYear(), m = calView.getMonth();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const firstDay = new Date(y, m, 1).getDay();
+
+  document.getElementById('calLabel').textContent = `${MONTHS[m]} ${y}`;
+  document.getElementById('calDow').innerHTML = DAYS.map(d=>`<div class="dow">${d}</div>`).join('');
+
+  let html = '';
+  for (let i=0; i<firstDay; i++) html += `<div class="day empty"></div>`;
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const fut = ds > t, done = set.has(ds), isT = ds===t;
+    let cls = 'day' + (fut?' fut':done?' done':' open') + (isT?' tod':'');
+    const st = done ? `style="background:${h.color}"` : '';
+    html += `<div class="${cls}" data-ds="${ds}" ${st}>${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function renderScoreBox(h) {
+  const score = calcScore(h);
+  document.getElementById('bigScore').textContent = score;
+  document.getElementById('scoreBarFill').style.width = score + '%';
+
+  const streaks = allStreaks(h);
+  const longest = streaks[0]?.len || 0;
+  const el = document.getElementById('streaksList');
+
+  if (!streaks.length) {
+    el.innerHTML = `<div class="empty-state">Mark your habit daily<br>to build streaks!</div>`;
+    return;
+  }
+
+  el.innerHTML = streaks.slice(0,4).map((sk,i) => {
+    const pct = ((sk.len/longest)*100).toFixed(1);
+    const alphas = [1, 0.65, 0.42, 0.28];
+    const a = alphas[i] || 0.28;
+    const col = a >= 1 ? h.color : hexAlpha(h.color, a+0.35);
+    const lbl = i===0 ? 'Longest' : `#${i+1}`;
+    return `<div class="sk-item">
+      <div class="sk-row">
+        <div>
+          <div class="sk-name" style="color:${col}">${lbl}</div>
+          <div class="sk-dates">${fmtShort(sk.s)} → ${fmtShort(sk.e)}</div>
+        </div>
+        <span class="sk-count" style="color:${col}">${sk.len}d</span>
+      </div>
+      <div class="sk-bar-bg">
+        <div class="sk-bar-fill" style="width:${pct}%;background:${h.color};opacity:${a}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFreq(h) {
+  const set = new Set(h.dates);
+  const data = Array.from({length:10}, (_,w) => {
+    const ref = new Date();
+    const dow = ref.getDay();
+    ref.setDate(ref.getDate() - dow - w*7);
+    let cnt = 0;
+    for (let i=0; i<7; i++) {
+      const d=new Date(ref); d.setDate(ref.getDate()+i);
+      if (set.has(mkDs(d))) cnt++;
+    }
+    return { cnt, lbl: ref.toLocaleDateString('en-US',{month:'short',day:'numeric'}) };
+  }).reverse();
+
+  document.getElementById('freqBars').innerHTML = data.map(({cnt,lbl}) => {
+    const pct = cnt/7;
+    const ht = Math.max(pct*74, cnt>0?5:2);
+    const bg = cnt===7 ? h.color
+      : cnt > 0 ? hexAlpha(h.color, 0.18+pct*0.62)
+      : 'rgba(255,255,255,0.05)';
+    return `<div class="freq-col">
+      <div class="freq-bar-area">
+        <div class="freq-bar" style="height:${ht}px;background:${bg}" data-t="${cnt}/7 days"></div>
+      </div>
+      <div class="freq-lbl">${lbl}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(h) {
+  const set = new Set(h.dates);
+  const t = today();
+  document.getElementById('histList').innerHTML = Array.from({length:20},(_,i) => {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = mkDs(d);
+    const done = set.has(ds), isT = ds===t;
+    const dotStyle = done ? `background:${h.color}` : '';
+    return `<div class="hist-row${isT?' is-today':''}" data-ds="${ds}">
+      <div class="hist-dot ${done?'done':'miss'}" style="${dotStyle}"></div>
+      <span class="hist-date">${fmtFull(ds)}${isT?' · Today':''}</span>
+      <span class="hist-status ${done?'done':'miss'}">${done?'Completed':'Missed'}</span>
+    </div>`;
+  }).join('');
+}
+
+function showFlash() {
+  const f = document.getElementById('dFlash');
+  f.style.display = 'block';
+  setTimeout(()=>f.style.display='none', 2600);
+}
+
+/* ═══════════════════════════════════════
+   ADD HABIT MODAL
+═══════════════════════════════════════ */
+/* Single-color system: every habit uses #39FF14 */
+
+function openAddModal() {
+  document.getElementById('modalInput').value = '';
+  document.getElementById('addModal').classList.add('open');
+  setTimeout(()=>document.getElementById('modalInput').focus(), 50);
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function addHabit() {
+  const name = document.getElementById('modalInput').value.trim();
+  if (!name) { document.getElementById('modalInput').focus(); return; }
+  habits.push({
+    id: genId(),
+    name,
+    color: ACCENT,
+    dates: []
+  });
+  saveHabits();
+  closeAddModal();
+  renderHome();
+}
+
+/* ═══════════════════════════════════════
+   DELETE HABIT
+═══════════════════════════════════════ */
+function deleteHabit() {
+  const h = getHabit(activeId);
+  if (!h) return;
+  if (!confirm(`Delete "${h.name}"? This cannot be undone.`)) return;
+  habits = habits.filter(x => x.id !== activeId);
+  saveHabits();
+  showHome();
+}
+
+/* ═══════════════════════════════════════
+   SETTINGS MODAL
+═══════════════════════════════════════ */
+function openSettings() {
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════
+   EXPORT — ALL HABITS
+═══════════════════════════════════════ */
+function exportAllCSV() {
+  if (!habits.length) { alert('No habits to export!'); return; }
+
+  // Find global date range
+  const allDates = habits.flatMap(h => h.dates);
+  if (!allDates.length) { alert('No data to export yet!'); return; }
+  const sorted = [...allDates].sort();
+  const start = new Date(sorted[0]+'T00:00:00');
+  const end = new Date();
+
+  const rows = ['Date,' + habits.map(h => `"${h.name.replace(/"/g,'""')}"`).join(',') + '\n'];
+
+  for (let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
+    const ds = mkDs(d);
+    const cols = habits.map(h => h.dates.includes(ds) ? 'Completed' : 'Missed');
+    rows.push(`${ds},${cols.join(',')}\n`);
+  }
+
+  const blob = new Blob(rows, {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `MyHabits-${today()}.csv`;
+  a.click();
+  closeSettings();
+}
+
+/* ═══════════════════════════════════════
+   IMPORT CSV
+═══════════════════════════════════════ */
+function triggerImport() {
+  document.getElementById('importFileInput').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const text = ev.target.result;
+      const lines = text.trim().split('\n');
+      if (lines.length < 2) { alert('CSV file is empty or invalid.'); return; }
+
+      // Parse header — first col is Date, rest are habit names
+      const headers = parseCSVLine(lines[0]);
+      const habitNames = headers.slice(1).map(h => h.replace(/^"|"$/g,''));
+
+      if (!habitNames.length) { alert('No habit columns found in CSV.'); return; }
+
+      // Build date sets per habit
+      const dateSets = habitNames.map(() => []);
+
+      for (let i=1; i<lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        if (cols.length < 2) continue;
+        const ds = cols[0].trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(ds)) continue;
+        for (let j=0; j<habitNames.length; j++) {
+          const val = (cols[j+1]||'').trim().toLowerCase();
+          if (val === 'completed' || val === '1' || val === 'true' || val === 'yes') {
+            dateSets[j].push(ds);
+          }
+        }
+      }
+
+      if (!confirm(`Import ${habitNames.length} habit(s)? This will ADD them to your existing habits.\n\n${habitNames.join(', ')}`)) return;
+
+      habitNames.forEach((name, i) => {
+        // Check if habit already exists
+        const existing = habits.find(h => h.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          // Merge dates
+          const merged = [...new Set([...existing.dates, ...dateSets[i]])];
+          existing.dates = merged;
+        } else {
+          habits.push({
+            id: genId(),
+            name,
+            color: COLORS[habits.length % COLORS.length],
+            dates: dateSets[i]
+          });
+        }
+      });
+
+      saveHabits();
+      renderHome();
+      closeSettings();
+      alert(`✓ Successfully imported ${habitNames.length} habit(s)!`);
+    } catch(err) {
+      alert('Failed to parse CSV: ' + err.message);
+    }
+    // Reset input
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i=0; i<line.length; i++) {
+    const ch = line[i];
+    if (ch==='"') { inQuotes = !inQuotes; }
+    else if (ch===',' && !inQuotes) { result.push(current); current=''; }
+    else { current += ch; }
+  }
+  result.push(current);
+  return result;
+}
+
+/* ─── Reset Today ─── */
+function resetToday() {
+  if (!confirm('Uncheck all habits completed today?')) return;
+  const t = today();
+  habits.forEach(h => {
+    h.dates = h.dates.filter(d => d !== t);
+  });
+  saveHabits();
+  renderHome();
+  closeSettings();
+}
+
+/* ─── Clear All Data ─── */
+function clearAllData() {
+  if (!confirm('This will permanently delete ALL habits and their history. Are you sure?')) return;
+  if (!confirm('Final confirmation: delete everything?')) return;
+  habits = [];
+  saveHabits();
+  showHome();
+  closeSettings();
+}
+
+/* ═══════════════════════════════════════
+   EVENTS
+═══════════════════════════════════════ */
+// Home
+document.getElementById('openAddBtn').addEventListener('click', openAddModal);
+// Settings button was removed from the home header. Guard the binding.
+{ const _sb = document.getElementById('openSettingsBtn'); if(_sb) _sb.addEventListener('click', openSettings); }
+
+// Modal
+document.getElementById('cancelAddBtn').addEventListener('click', closeAddModal);
+document.getElementById('addModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddModal(); });
+document.getElementById('confirmAddBtn').addEventListener('click', addHabit);
+document.getElementById('modalInput').addEventListener('keydown', e => { if(e.key==='Enter') addHabit(); });
+
+// Settings
+document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+document.getElementById('settingsModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeSettings(); });
+document.getElementById('exportAllBtn').addEventListener('click', exportAllCSV);
+document.getElementById('importCsvBtn').addEventListener('click', triggerImport);
+document.getElementById('clearTodayBtn').addEventListener('click', resetToday);
+document.getElementById('clearAllDataBtn').addEventListener('click', clearAllData);
+document.getElementById('importFileInput').addEventListener('change', handleImport);
+
+// Detail
+document.getElementById('deleteHabitBtn').addEventListener('click', deleteHabit);
+document.getElementById('backBtn').addEventListener('click', showHome);
+document.getElementById('dTodayBtn').addEventListener('click', () => toggle(activeId, today()));
+
+document.getElementById('calGrid').addEventListener('click', e => {
+  const cell = e.target.closest('.day:not(.fut):not(.empty)');
+  if (cell?.dataset.ds) toggle(activeId, cell.dataset.ds);
+});
+
+document.getElementById('heatGrid').addEventListener('click', e => {
+  const cell = e.target.closest('.heat-cell');
+  if (cell?.dataset.ds && cell.dataset.ds <= today()) toggle(activeId, cell.dataset.ds);
+});
+
+document.getElementById('calPrev').addEventListener('click', () => {
+  calView.setMonth(calView.getMonth()-1); renderDetail();
+});
+document.getElementById('calNext').addEventListener('click', () => {
+  calView.setMonth(calView.getMonth()+1); renderDetail();
+});
+
+// Streaks heatmap year navigation
+document.getElementById('prevYearBtn').addEventListener('click', () => {
+  heatYearOffset -= 1; renderDetail();
+});
+document.getElementById('nextYearBtn').addEventListener('click', () => {
+  if(heatYearOffset < 0){ heatYearOffset += 1; renderDetail(); }
+});
+
+// Editable name
+const dNameEl = document.getElementById('dName');
+dNameEl.addEventListener('blur', () => {
+  const h = getHabit(activeId); if (!h) return;
+  const v = dNameEl.value.trim();
+  if (v) h.name = v; else dNameEl.value = h.name;
+  dNameEl.classList.remove('editing');
+  saveHabits(); renderHome();
+});
+dNameEl.addEventListener('focus', () => dNameEl.classList.add('editing'));
+dNameEl.addEventListener('keydown', e => { if(e.key==='Enter') dNameEl.blur(); });
+
+/* ═══════════════════════════════════════
+   INIT · Delegated to HB (Firebase module below)
+═══════════════════════════════════════ */
+// Expose internal APIs so the Firebase module can invoke them after auth
+window.__HB_CORE__ = {
+  get habits(){return habits}, set habits(v){habits=v},
+  get activeId(){return activeId}, set activeId(v){activeId=v},
+  loadHabits, saveHabits, showHome, renderHome, renderDetail,
+  currentStreak, allStreaks, calcScore, calcMonthStats, calcYearStats,
+  toggle, getHabit, defaultHabits, today, mkDs, COLORS,
+};
+// Actual boot is triggered by the module script at the bottom of <body>.
+</script>
+<!-- ═══════════════════════════════════════
+     FIREBASE MODULE · AUTH · CLOUD SYNC · LEADERBOARD · PROFILE
+═══════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
+  sendPasswordResetEmail, sendEmailVerification, updateProfile,
+  GoogleAuthProvider, signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot,
+  collection, query, orderBy, limit, runTransaction, serverTimestamp, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getStorage, ref as sRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+/* ═══ CONFIG ═══ */
+const firebaseConfig = {
+  apiKey: "__FIREBASE_API_KEY__",
+  authDomain: "__FIREBASE_AUTH_DOMAIN__",
+  projectId: "__FIREBASE_PROJECT_ID__",
+  storageBucket: "__FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__FIREBASE_APP_ID__",
+  measurementId: "__FIREBASE_MEASUREMENT_ID__"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+/* ═══ SVG ICON LIBRARY · Monochrome (inherits currentColor, styled #39FF14) ═══ */
+const ICO_PATHS = {
+  sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5 5.5-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  bolt: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  diamond: '<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13"/><path d="M13 3l3 6-4 13"/><path d="M2 9h20"/>',
+  gem: '<path d="M6 3h12l4 6-10 13L2 9z"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  medal: '<circle cx="12" cy="15" r="6"/><path d="M6 3h12l-3 6H9L6 3z"/>',
+  crown: '<path d="M11.56 3.27a.5.5 0 0 1 .88 0L15.4 8.87a1 1 0 0 0 1.51.3L21.18 5.5a.5.5 0 0 1 .8.52l-2.83 10.25a1 1 0 0 1-.96.73H5.81a1 1 0 0 1-.96-.73L2.02 6.02a.5.5 0 0 1 .8-.52l4.28 3.67a1 1 0 0 0 1.51-.3z"/><path d="M5 21h14"/>',
+  check: '<path stroke-width="2.5" d="M20 6 9 17l-5-5"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  trend: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  gear: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="4"/>',
+  spark: '<path d="M12 3v18M3 12h18M5.5 5.5l13 13M18.5 5.5l-13 13"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  google: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M21.35 11.1H12v3.2h5.35c-.23 1.26-.9 2.32-1.9 3.03v2.52h3.06c1.79-1.65 2.83-4.08 2.83-6.95 0-.66-.06-1.31-.19-1.92z"/><path d="M12 22c2.7 0 4.96-.9 6.61-2.44l-3.06-2.52c-.85.57-1.94.9-3.55.9-2.73 0-5.04-1.84-5.87-4.32H3.02v2.72A9.99 9.99 0 0 0 12 22z"/><path d="M6.13 13.62A5.98 5.98 0 0 1 5.82 12c0-.56.1-1.1.31-1.62V7.66H3.02A9.99 9.99 0 0 0 2 12c0 1.61.38 3.13 1.02 4.34l3.11-2.72z"/><path d="M12 5.68c1.47 0 2.79.5 3.83 1.5l2.71-2.72C16.96 2.91 14.7 2 12 2A9.99 9.99 0 0 0 3.02 7.66l3.11 2.72C6.96 7.9 9.27 6.05 12 5.68z"/></svg>',
+};
+function svgIcon(name, opts={}){
+  const path = ICO_PATHS[name]; if(!path) return '';
+  // If the icon is already a full svg (e.g. brand logos) return as-is
+  if(path.startsWith('<svg')) return path;
+  const sw = opts.strokeWidth || 2;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+}
+function ico(name, cls='', extra=''){
+  return `<span class="ico ${cls}" ${extra}>${svgIcon(name)}</span>`;
+}
+// Populate any <span class="social-ico" data-ico="X"> placeholders now
+document.querySelectorAll('[data-ico]').forEach(el=>{
+  el.innerHTML = svgIcon(el.dataset.ico);
+});
+
+/* ═══ STATE ═══ */
+const CORE = window.__HB_CORE__;
+const HB = { user:null, profile:null, unsub:{}, leaderRows:[], search:"", pushTimer:null, achievements:[] };
+window.HB = HB;
+// Expose helpers so other parts of the app (e.g. dynamically rendered
+// empty state) can render our monochrome SVG icons on demand.
+HB.__renderIco = (el) => { if (el && el.dataset && el.dataset.ico) el.innerHTML = svgIcon(el.dataset.ico); };
+HB.__svgIcon = svgIcon;
+
+/* ═══ UI HELPERS ═══ */
+const $ = id => document.getElementById(id);
+function toast(msg, kind='success', iconName){
+  const c = $('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast '+kind;
+  const nameByKind = {success:'check', info:'info', warn:'warn'};
+  const useName = iconName || nameByKind[kind] || 'check';
+  el.innerHTML = `<span class="toast-ico ico">${svgIcon(useName)}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>{ el.classList.add('leaving'); setTimeout(()=>el.remove(),300); }, 3200);
+}
+function setAuthError(msg){ const e=$('authError'); if(!msg){e.classList.remove('show');return;} e.textContent=msg; e.classList.add('show'); $('authOk').classList.remove('show'); }
+function setAuthOk(msg){ const e=$('authOk'); e.textContent=msg; e.classList.add('show'); $('authError').classList.remove('show'); }
+function fmtDate(ts){ if(!ts) return ''; const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function relTime(ts){
+  if(!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diff = (Date.now() - d.getTime())/1000;
+  if(diff<60) return 'just now';
+  if(diff<3600) return Math.floor(diff/60)+'m ago';
+  if(diff<86400) return Math.floor(diff/3600)+'h ago';
+  if(diff<604800) return Math.floor(diff/86400)+'d ago';
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function initialsOf(name){ return (name||'U').trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase(); }
+
+/* ═══ VIEW SWITCHER ═══ */
+function hideAllViews(){
+  ['bootSplash','authView','homeView','detailView','leaderView','profileView'].forEach(id=>{
+    const el = $(id); if(el) el.style.display='none';
+  });
+}
+function showView(name){
+  hideAllViews();
+  if(name==='auth'){ $('authView').style.display=''; $('userChip').classList.remove('show'); $('bottomNav').classList.remove('show'); return; }
+  // User chip is shown on Home/Ranks/Profile but hidden on Habit Detail
+  // to keep the detail page focused solely on the habit.
+  const showChip = (name !== 'detail');
+  const userChipEl = $('userChip');
+  if(userChipEl) userChipEl.classList.toggle('show', showChip);
+  $('bottomNav').classList.add('show');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.nav===name));
+  if(name==='home'){ $('homeView').style.display=''; CORE.showHome(); installHabitDragSort(); }
+  else if(name==='leader'){ $('leaderView').style.display=''; renderLeaderboard(); }
+  else if(name==='profile'){ $('profileView').style.display=''; renderProfile(); }
+}
+document.querySelectorAll('.nav-btn').forEach(b=>{
+  b.addEventListener('click', ()=> showView(b.dataset.nav));
+});
+$('userChip').addEventListener('click', ()=> showView('profile'));
+
+/* ═══ AUTH UI ═══ */
+document.querySelectorAll('.auth-tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    setAuthError(''); setAuthOk('');
+    document.querySelectorAll('.auth-tab').forEach(x=>x.classList.toggle('active', x===t));
+    const mode = t.dataset.mode;
+    document.querySelectorAll('.auth-pane').forEach(p=> p.style.display = (p.dataset.pane===mode ? '' : 'none'));
+  });
+});
+$('forgotLink').addEventListener('click', ()=>{
+  setAuthError(''); setAuthOk('');
+  document.querySelectorAll('.auth-pane').forEach(p=> p.style.display = (p.dataset.pane==='forgot' ? '' : 'none'));
+});
+$('backToLogin').addEventListener('click', ()=>{
+  setAuthError(''); setAuthOk('');
+  document.querySelectorAll('.auth-tab').forEach(x=>x.classList.toggle('active', x.dataset.mode==='login'));
+  document.querySelectorAll('.auth-pane').forEach(p=> p.style.display = (p.dataset.pane==='login' ? '' : 'none'));
+});
+
+function friendly(err){
+  const c = err?.code || '';
+  if(c.includes('email-already-in-use')) return 'Email already registered.';
+  if(c.includes('invalid-email')) return 'Invalid email address.';
+  if(c.includes('weak-password')) return 'Password too weak (min 6 chars).';
+  if(c.includes('user-not-found')||c.includes('invalid-credential')||c.includes('wrong-password')) return 'Wrong email or password.';
+  if(c.includes('too-many-requests')) return 'Too many attempts. Try later.';
+  if(c.includes('network')) return 'Network error. Check connection.';
+  return err?.message || 'Something went wrong.';
+}
+
+$('loginBtn').addEventListener('click', async ()=>{
+  setAuthError(''); setAuthOk('');
+  const email = $('loginEmail').value.trim();
+  const pw = $('loginPassword').value;
+  if(!email || !pw){ setAuthError('Enter email and password.'); return; }
+  $('loginBtn').disabled = true; $('loginBtn').textContent = 'Signing in…';
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch(e){ setAuthError(friendly(e)); }
+  finally { $('loginBtn').disabled=false; $('loginBtn').textContent='Sign In'; }
+});
+
+$('registerBtn').addEventListener('click', async ()=>{
+  setAuthError(''); setAuthOk('');
+  const username = $('regUsername').value.trim();
+  const email = $('regEmail').value.trim();
+  const pw = $('regPassword').value;
+  if(!username || !email || !pw){ setAuthError('Fill all fields.'); return; }
+  if(pw.length < 6){ setAuthError('Password must be at least 6 characters.'); return; }
+  $('registerBtn').disabled = true; $('registerBtn').textContent = 'Creating…';
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    await updateProfile(cred.user, { displayName: username });
+    await ensureUserDoc(cred.user, username);
+    try { await sendEmailVerification(cred.user); } catch(_){}
+    setAuthOk('Account created! Verification email sent.');
+  } catch(e){ setAuthError(friendly(e)); }
+  finally { $('registerBtn').disabled=false; $('registerBtn').textContent='Create Account'; }
+});
+
+$('sendResetBtn').addEventListener('click', async ()=>{
+  setAuthError(''); setAuthOk('');
+  const email = $('forgotEmail').value.trim();
+  if(!email){ setAuthError('Enter your email.'); return; }
+  $('sendResetBtn').disabled = true; $('sendResetBtn').textContent = 'Sending…';
+  try { await sendPasswordResetEmail(auth, email); setAuthOk('Password reset email sent.'); }
+  catch(e){ setAuthError(friendly(e)); }
+  finally { $('sendResetBtn').disabled=false; $('sendResetBtn').textContent='Send Reset Link'; }
+});
+
+$('signOutBtn').addEventListener('click', async ()=>{
+  await signOut(auth);
+  toast('Signed out', 'info');
+});
+
+/* ═══ SOCIAL AUTH (Google only) ═══ */
+async function handleSocial(provider){
+  setAuthError(''); setAuthOk('');
+  try {
+    const res = await signInWithPopup(auth, provider);
+    // onAuthStateChanged will handle the rest (ensureUserDoc + view switch)
+    await ensureUserDoc(res.user, res.user.displayName || res.user.email?.split('@')[0]);
+  } catch(e){
+    if(e?.code === 'auth/popup-closed-by-user') return;
+    if(e?.code === 'auth/operation-not-allowed'){
+      setAuthError('This sign-in method is not enabled in Firebase. Please enable it in the console.');
+    } else {
+      setAuthError(friendly(e));
+    }
+  }
+}
+$('googleLoginBtn').addEventListener('click', ()=>{
+  const p = new GoogleAuthProvider();
+  p.setCustomParameters({ prompt: 'select_account' });
+  handleSocial(p);
+});
+
+/* ═══ USER ID GENERATION ═══
+   Uses a Firestore transaction on `meta/counters` to obtain the next sequential
+   ID. If the transaction fails (contention, security rules, cold-start) or
+   takes too long, we fall back to a random 6-digit suffix so registration
+   NEVER hangs.
+*/
+async function claimNextUserId(){
+  const year = new Date().getFullYear();
+  const counterRef = doc(db, 'meta', 'counters');
+  const fallbackId = () => {
+    const rnd = Math.floor(100000 + Math.random() * 900000);
+    return `HB-${year}-${String(rnd).padStart(6,'0')}`;
+  };
+  try {
+    // Race the transaction against a 6-second timeout so a hung write never
+    // blocks the sign-up flow.
+    const txPromise = runTransaction(db, async (tx)=>{
+      const snap = await tx.get(counterRef);
+      const n = snap.exists() ? ((snap.data().userSeq || 0) + 1) : 1;
+      tx.set(counterRef, { userSeq: n }, { merge: true });
+      return `HB-${year}-${String(n).padStart(6,'0')}`;
+    });
+    const timeout = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error('counter-timeout')), 6000));
+    return await Promise.race([txPromise, timeout]);
+  } catch(e){
+    console.warn('claimNextUserId falling back:', e && (e.code || e.message));
+    return fallbackId();
+  }
+}
+
+/* ═══ USER DOC CREATION ═══ */
+async function ensureUserDoc(user, username){
+  const uref = doc(db, 'users', user.uid);
+  const snap = await getDoc(uref);
+  if(snap.exists()) return snap.data();
+  const userId = await claimNextUserId();
+  const data = {
+    uid: user.uid,
+    userId,
+    username: username || user.displayName || (user.email ? user.email.split('@')[0] : 'user_' + (user.uid||'').slice(0,6)),
+    email: user.email || '',
+    photoURL: user.photoURL || '',
+    score: 0,
+    rank: 0,
+    joinedAt: serverTimestamp(),
+    habitsCount: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    totalCompletions: 0,
+    achievements: [],
+    activity: [],
+  };
+  await setDoc(uref, data);
+  // New users start with a completely empty habits collection.
+  // No demo/sample habits are created.
+  return data;
+}
+
+/* ═══ AUTH LISTENER ═══ */
+onAuthStateChanged(auth, async (user)=>{
+  // Clear any prior listeners
+  Object.values(HB.unsub).forEach(fn=>{ try{fn();}catch(_){} });
+  HB.unsub = {};
+
+  // CRITICAL: Clear all in-memory state so previous user's data does not
+  // leak when switching accounts on the same browser session.
+  CORE.habits = [];
+  CORE.activeId = null;
+  HB.profile = null;
+  HB.leaderRows = [];
+  HB._bootedOnce = false;
+  try { localStorage.removeItem('habits-v2'); } catch(_){}
+  const countEl = document.getElementById('homeActiveCount');
+  if(countEl) countEl.textContent = '';
+  const gridEl = document.getElementById('habitGrid');
+  if(gridEl) gridEl.innerHTML = '';
+
+  if(!user){
+    HB.user = null; HB.profile = null;
+    $('bootSplash').classList.add('hidden');
+    showView('auth');
+    return;
+  }
+  HB.user = user;
+  try {
+    await ensureUserDoc(user, user.displayName || user.email.split('@')[0]);
+  } catch(e){ console.warn('ensureUserDoc failed', e); }
+
+  attachUserListener();
+  attachHabitsListener();
+  attachLeaderboardListener();
+
+  $('bootSplash').classList.add('hidden');
+});
+
+/* ═══ REAL-TIME USER PROFILE LISTENER ═══ */
+function attachUserListener(){
+  const uref = doc(db, 'users', HB.user.uid);
+  HB.unsub.user = onSnapshot(uref, (snap)=>{
+    if(!snap.exists()) return;
+    HB.profile = snap.data();
+    updateUserChip();
+    if($('profileView').style.display !== 'none') renderProfile();
+  });
+}
+function updateUserChip(){
+  if(!HB.profile) return;
+  $('ucName').textContent = HB.profile.username || 'User';
+  const av = $('ucAvatar');
+  if(HB.profile.photoURL){ av.innerHTML = `<img src="${HB.profile.photoURL}" alt="">`; }
+  else { av.textContent = initialsOf(HB.profile.username); }
+}
+
+/* ═══ REAL-TIME HABITS LISTENER ═══ */
+function attachHabitsListener(){
+  const q = collection(db, 'users', HB.user.uid, 'habits');
+  HB.unsub.habits = onSnapshot(q, (snap)=>{
+    const raw = [];
+    snap.forEach(d=>{
+      const x = d.data();
+      raw.push({ id: x.id || d.id, name: x.name || 'Habit', color: '#39FF14', dates: x.dates || [] });
+    });
+    // Apply the user's custom habit order from their profile document.
+    const order = (HB.profile && Array.isArray(HB.profile.habitOrder)) ? HB.profile.habitOrder : [];
+    const byId = new Map(raw.map(h => [h.id, h]));
+    const ordered = [];
+    for(const id of order){
+      const h = byId.get(id);
+      if(h){ ordered.push(h); byId.delete(id); }
+    }
+    // Any habits not in the saved order (newly created or migrated) go to the end
+    for(const h of byId.values()) ordered.push(h);
+
+    CORE.habits = ordered;
+    // Re-render whatever view is currently visible
+    if($('homeView').style.display !== 'none') { CORE.renderHome(); installHabitDragSort(); }
+    if(CORE.activeId && $('detailView').style.display !== 'none') CORE.renderDetail();
+    scheduleScoreSync();
+    if(!HB._bootedOnce){ HB._bootedOnce = true; showView('home'); }
+  }, (err)=>{ console.warn('habits listener err', err); toast('Sync error — check Firestore rules', 'warn'); });
+}
+
+/* Habit drag-and-drop reordering (mobile + desktop, powered by Sortable.js) */
+let _sortableInstance = null;
+function installHabitDragSort(){
+  const grid = document.getElementById('habitGrid');
+  if(!grid || typeof Sortable === 'undefined') return;
+  // Nothing to reorder if there are 0 or 1 habits
+  if((CORE.habits||[]).length < 2){
+    if(_sortableInstance){ try{ _sortableInstance.destroy(); }catch(_){} _sortableInstance = null; }
+    return;
+  }
+  // Rebuild the Sortable on each render (habits array can change)
+  if(_sortableInstance){ try{ _sortableInstance.destroy(); }catch(_){} _sortableInstance = null; }
+  _sortableInstance = Sortable.create(grid, {
+    animation: 180,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    delay: 120, delayOnTouchOnly: true, touchStartThreshold: 4,
+    onEnd: async (ev)=>{
+      const newOrder = Array.from(grid.querySelectorAll('.hcard'))
+        .map(el => el.getAttribute('data-habit-id'))
+        .filter(Boolean);
+      if(!newOrder.length || !HB.user) return;
+      // Reorder in memory instantly
+      const byId = new Map((CORE.habits||[]).map(h => [h.id, h]));
+      CORE.habits = newOrder.map(id => byId.get(id)).filter(Boolean);
+      // Persist the ORDER of IDs to the user document
+      try {
+        await updateDoc(doc(db, 'users', HB.user.uid), { habitOrder: newOrder });
+      } catch(e){
+        console.error('Failed to save habit order:', e);
+        toast('Could not save order', 'warn');
+      }
+    },
+  });
+}
+
+/* ═══ HOOK: intercept saveHabits to push to cloud ═══ */
+const _origSave = window.saveHabits;
+window.saveHabits = function(){
+  // Skip local cache (we're cloud-first) but keep for offline
+  try { _origSave && _origSave.apply(this, arguments); } catch(_){}
+  pushHabitsToCloud();
+  scheduleScoreSync();
+};
+
+/* Debounced push of every habit to Firestore */
+let pushDebounce = null;
+function pushHabitsToCloud(){
+  if(!HB.user) return;
+  clearTimeout(pushDebounce);
+  pushDebounce = setTimeout(async ()=>{
+    try {
+      const uid = HB.user.uid;
+      // Snapshot current in-memory habits list
+      const habits = CORE.habits.slice();
+      // Write each habit doc (batched writes could be added, keep simple)
+      for(const h of habits){
+        await setDoc(doc(db, 'users', uid, 'habits', h.id), {
+          id: h.id, name: h.name, color: h.color, dates: h.dates,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+      // Detect deleted habits: fetch server ids and delete diff
+      // (simple approach — skip for MVP; deleteHabit handles single-item delete directly)
+    } catch(e){ console.warn('push failed', e); }
+  }, 250);
+}
+
+/* Also intercept delete: replace the delete button listener entirely so the
+   original in-memory-only handler is bypassed. This fixes the bug where
+   deletes were reverted by the Firestore listener re-adding the habit. */
+function _installCloudDeleteHandler(){
+  const oldBtn = document.getElementById('deleteHabitBtn');
+  if(!oldBtn) return;
+  // Clone to remove any previously attached listeners (including the vanilla one)
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+  newBtn.addEventListener('click', async () => {
+    if(!HB.user) return;
+    const id = CORE.activeId;
+    if(!id) return;
+    const habit = (CORE.habits || []).find(h => h.id === id);
+    if(!habit) return;
+    if(!confirm(`Delete "${habit.name}"? This cannot be undone.`)) return;
+    // Optimistically remove from local state so UI updates instantly
+    const prev = CORE.habits.slice();
+    CORE.habits = CORE.habits.filter(x => x.id !== id);
+    CORE.activeId = null;
+    try { CORE.showHome(); } catch(_){}
+    try {
+      await deleteDoc(doc(db, 'users', HB.user.uid, 'habits', id));
+      toast('Habit deleted', 'info');
+    } catch(e){
+      console.error('Delete failed:', e);
+      // Rollback on failure — Firestore listener will restore authoritative state
+      CORE.habits = prev;
+      try { CORE.renderHome(); } catch(_){}
+      toast('Delete failed. Please try again.', 'warn');
+    }
+  });
+}
+_installCloudDeleteHandler();
+
+/* ═══ SCORE + RANK COMPUTATION ═══ */
+function totalStreaks(habits){
+  let cur = 0, best = 0, totalCompletions = 0;
+  for(const h of habits){
+    totalCompletions += h.dates.length;
+    const cs = CORE.currentStreak(h);
+    if(cs > cur) cur = cs;
+    const all = CORE.allStreaks(h);
+    if(all[0] && all[0].len > best) best = all[0].len;
+  }
+  return { currentStreak: cur, longestStreak: best, totalCompletions };
+}
+function computeScore(habits){
+  // Score algorithm:
+  //  Every unique daily completion: +10
+  //  Every 7-day streak block: +20 bonus
+  //  Every 30-day streak block: +100 bonus
+  //  Perfect week (all habits done last 7 days): +50
+  //  Perfect month (all habits done last 30 days): +300
+  let score = 0;
+  for(const h of habits){
+    const uniq = new Set(h.dates).size;
+    score += uniq * 10;
+    const allS = CORE.allStreaks(h);
+    for(const s of allS){
+      score += Math.floor(s.len / 7) * 20;
+      score += Math.floor(s.len / 30) * 100;
+    }
+  }
+  // Perfect week bonus
+  if(habits.length > 0){
+    const setsAll = habits.map(h=> new Set(h.dates));
+    let pw = true;
+    for(let i=0;i<7;i++){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const ds = CORE.mkDs(d);
+      if(!setsAll.every(s=>s.has(ds))){ pw = false; break; }
+    }
+    if(pw) score += 50;
+    let pm = true;
+    for(let i=0;i<30;i++){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const ds = CORE.mkDs(d);
+      if(!setsAll.every(s=>s.has(ds))){ pm = false; break; }
+    }
+    if(pm) score += 300;
+  }
+  return score;
+}
+
+let scoreDebounce = null;
+function scheduleScoreSync(){
+  if(!HB.user) return;
+  clearTimeout(scoreDebounce);
+  scoreDebounce = setTimeout(syncScoreNow, 400);
+}
+async function syncScoreNow(){
+  if(!HB.user) return;
+  const habits = CORE.habits;
+  const score = computeScore(habits);
+  const streaks = totalStreaks(habits);
+  const patch = {
+    score,
+    habitsCount: habits.length,
+    currentStreak: streaks.currentStreak,
+    longestStreak: streaks.longestStreak,
+    totalCompletions: streaks.totalCompletions,
+  };
+  try {
+    await updateDoc(doc(db, 'users', HB.user.uid), patch);
+    // Achievements evaluation
+    evaluateAchievements(patch);
+  } catch(e){ console.warn('score sync', e); }
+}
+
+/* ═══ ACHIEVEMENTS ═══ */
+const ACHIEVEMENTS = [
+  { id:'first-habit', name:'First Habit', icon:'sprout', desc:'Create your first habit', check:(p,h)=> h.length>=1 },
+  { id:'streak-7', name:'7-Day Streak', icon:'flame', desc:'Reach a 7-day streak', check:(p)=> p.longestStreak>=7 },
+  { id:'streak-30', name:'30-Day Streak', icon:'bolt', desc:'Reach a 30-day streak', check:(p)=> p.longestStreak>=30 },
+  { id:'streak-100', name:'100 Days', icon:'target', desc:'Reach a 100-day streak', check:(p)=> p.longestStreak>=100 },
+  { id:'comp-100', name:'Century', icon:'diamond', desc:'100 total completions', check:(p)=> p.totalCompletions>=100 },
+  { id:'comp-500', name:'500 Completions', icon:'gem', desc:'Complete 500 habit days', check:(p)=> p.totalCompletions>=500 },
+  { id:'score-1000', name:'1000 Points', icon:'trophy', desc:'Earn 1000 score', check:(p)=> p.score>=1000 },
+  { id:'top-100', name:'Top 100', icon:'medal', desc:'Reach top 100 globally', check:(p)=> p.rank>0 && p.rank<=100 && p.score>0 },
+  { id:'top-10', name:'Top 10', icon:'medal', desc:'Reach top 10 globally', check:(p)=> p.rank>0 && p.rank<=10 && p.score>0 },
+  { id:'top-3', name:'Top 3', icon:'medal', desc:'Reach the podium', check:(p)=> p.rank>0 && p.rank<=3 && p.score>0 },
+  { id:'rank-1', name:'#1 Champion', icon:'crown', desc:'Become #1 globally', check:(p)=> p.rank===1 && p.score>0 },
+];
+async function evaluateAchievements(patch){
+  if(!HB.profile) return;
+  const merged = Object.assign({}, HB.profile, patch);
+  const owned = new Set(merged.achievements || []);
+  const newly = [];
+  for(const a of ACHIEVEMENTS){
+    if(!owned.has(a.id) && a.check(merged, CORE.habits)){
+      owned.add(a.id); newly.push(a);
+    }
+  }
+  if(newly.length){
+    try {
+      await updateDoc(doc(db, 'users', HB.user.uid), {
+        achievements: Array.from(owned),
+        activity: arrayUnion(...newly.map(a=>({ type:'achievement', id:a.id, name:a.name, at: Date.now() })))
+      });
+      newly.forEach(a=> toast(`Unlocked: ${a.name}`, 'success', a.icon));
+    } catch(e){ console.warn(e); }
+  }
+}
+
+/* ═══ LEADERBOARD ═══ */
+function attachLeaderboardListener(){
+  const q = query(collection(db, 'users'), orderBy('score', 'desc'), limit(100));
+  HB.unsub.leader = onSnapshot(q, (snap)=>{
+    const rows = [];
+    let rank = 0;
+    snap.forEach(d=>{ rank++; rows.push({ ...d.data(), rank }); });
+    HB.leaderRows = rows;
+    // Update self rank
+    const me = rows.find(r=> r.uid === HB.user?.uid);
+    if(me && HB.profile && me.rank !== HB.profile.rank){
+      updateDoc(doc(db, 'users', HB.user.uid), { rank: me.rank }).catch(()=>{});
+    }
+    if($('leaderView').style.display !== 'none') renderLeaderboard();
+  }, (err)=>{ console.warn('leader listener', err); });
+}
+function renderLeaderboard(){
+  const rows = HB.leaderRows;
+  // Podium (top 3) — monochrome #39FF14 medals with rank number
+  const podium = $('podium');
+  const top3 = rows.slice(0,3);
+  const slotClasses = ['p1','p2','p3'];
+  if(top3.length === 0){
+    podium.innerHTML = '';
+  } else {
+    podium.innerHTML = top3.map((u,i)=>`
+      <div class="podium-slot ${slotClasses[i]}">
+        <div class="podium-medal ico">${svgIcon('medal')}</div>
+        <div class="podium-rank" style="font-family:var(--mono);font-size:11px;color:var(--hc);letter-spacing:0.14em;margin-bottom:6px">#${i+1}</div>
+        <div class="podium-avatar">${u.photoURL ? `<img src="${u.photoURL}">` : initialsOf(u.username)}</div>
+        <div class="podium-name">${escapeHtml(u.username||'User')}</div>
+        <div class="podium-uid">${u.userId||''}</div>
+        <div class="podium-score">${u.score||0}<span>pts</span></div>
+      </div>
+    `).join('');
+  }
+  // List (search filter)
+  const term = HB.search.trim().toLowerCase();
+  const filtered = term ? rows.filter(r=>
+    (r.username||'').toLowerCase().includes(term) ||
+    (r.userId||'').toLowerCase().includes(term)
+  ) : rows;
+  const list = $('leaderList');
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="leader-empty">No players yet. Be the first — complete a habit!</div>';
+  } else {
+    list.innerHTML = filtered.map(r=>{
+      const isMe = r.uid === HB.user?.uid;
+      const topCls = r.rank<=3 ? 'top3' : '';
+      return `<div class="leader-row ${isMe?'me':''}">
+        <div class="lr-rank ${topCls}">#${r.rank}</div>
+        <div class="lr-avatar">${r.photoURL ? `<img src="${r.photoURL}">` : initialsOf(r.username)}</div>
+        <div class="lr-info">
+          <div class="lr-name">${escapeHtml(r.username||'User')}${isMe?' <span style="color:var(--hc);font-size:9px;letter-spacing:0.16em;margin-left:6px">YOU</span>':''}</div>
+          <div class="lr-uid">${r.userId||''}</div>
+        </div>
+        <div class="lr-stat"><span class="lrs-val">${r.score||0}</span><span class="lrs-lbl">Score</span></div>
+        <div class="lr-stat hide-mob"><span class="lrs-val">${r.currentStreak||0}</span><span class="lrs-lbl">Streak</span></div>
+        <div class="lr-stat hide-mob"><span class="lrs-val">${r.longestStreak||0}</span><span class="lrs-lbl">Best</span></div>
+      </div>`;
+    }).join('');
+  }
+  $('lhSub').textContent = `${rows.length} player${rows.length===1?'':'s'} · updates in real-time`;
+}
+$('leaderSearch').addEventListener('input', (e)=>{ HB.search = e.target.value; renderLeaderboard(); });
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ═══ PROFILE RENDER ═══ */
+function renderProfile(){
+  if(!HB.profile) return;
+  const p = HB.profile;
+  $('profileName').textContent = p.username || 'User';
+  $('profileUid').textContent = p.userId || '';
+  $('profileEmail').textContent = p.email || '';
+  $('profileJoined').textContent = 'Joined ' + (fmtDate(p.joinedAt) || '—');
+  const av = $('profileAvatar');
+  if(p.photoURL){ av.innerHTML = `<img src="${p.photoURL}" alt="">`; }
+  else { av.textContent = initialsOf(p.username); }
+
+  const habits = CORE.habits || [];
+  const hasHabits = habits.length > 0;
+  const statsWrap = document.querySelector('.profile-stats');
+  if(statsWrap) statsWrap.style.display = hasHabits ? '' : 'none';
+
+  if(hasHabits){
+    $('pScore').textContent = p.score || 0;
+    $('pStreak').textContent = p.currentStreak || 0;
+    $('pLongest').textContent = p.longestStreak || 0;
+    $('pHabits').textContent = habits.length;
+  }
+
+  // Achievements — monochrome green SVG icons
+  const owned = new Set(p.achievements || []);
+  $('achievementsGrid').innerHTML = ACHIEVEMENTS.map(a=>{
+    const has = owned.has(a.id);
+    return `<div class="ach-card ${has?'':'locked'}">
+      <div class="ach-icon ico">${svgIcon(a.icon)}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+    </div>`;
+  }).join('');
+}
+/* Activity feed and profile photo upload are intentionally removed. */
+
+/* ═══ ACTIVITY LOGGING (habit completion) ═══ */
+// Wrap CORE.toggle to log activity
+const _origToggle = CORE.toggle;
+CORE.toggle = function(habitId, ds){
+  const before = CORE.habits.find(h=>h.id===habitId)?.dates?.length || 0;
+  const res = _origToggle.apply(this, arguments);
+  const after = CORE.habits.find(h=>h.id===habitId)?.dates?.length || 0;
+  if(HB.user && after > before && ds === CORE.today()){
+    const h = CORE.habits.find(x=>x.id===habitId);
+    updateDoc(doc(db, 'users', HB.user.uid), {
+      activity: arrayUnion({ type:'habit_completed', name: h?.name || 'habit', at: Date.now() })
+    }).catch(()=>{});
+  }
+  return res;
+};
+window.toggle = CORE.toggle;
+
+/* ═══ BOOT ═══ */
+// nothing else — auth listener handles everything
+</script>
+
+</body>
+</html>

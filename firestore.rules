@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ─────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function usernameValid(v) {
+      return v is string && v.size() >= 1 && v.size() <= 32;
+    }
+
+    // ─── users/{uid} ─────────────────────────────────────────────
+    // Any authenticated user can READ profiles (needed for the global
+    // leaderboard). Only the owner may modify their own document.
+    match /users/{userId} {
+      allow read: if isSignedIn();
+
+      // Create: owner only, and the doc must contain the correct uid.
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && usernameValid(request.resource.data.username);
+
+      // Update: owner only. Prevent tampering with immutable fields.
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.joinedAt == resource.data.joinedAt;
+
+      // Delete: owner only.
+      allow delete: if isOwner(userId);
+
+      // ─── users/{uid}/habits/{habitId} ─────────────────────────
+      // A habit belongs entirely to its owner. No one else may read
+      // or write it under any circumstance.
+      match /habits/{habitId} {
+        allow read, create, update, delete: if isOwner(userId);
+      }
+    }
+
+    // ─── meta/counters ───────────────────────────────────────────
+    // A single doc holding the user-id sequence counter.
+    // Any signed-in user may read/write it via transactions.
+    match /meta/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ─── Everything else is denied ───────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
